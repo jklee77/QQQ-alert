@@ -69,7 +69,7 @@ def send_email(html):
 
 
     msg["Subject"] = (
-        "QQQ AI 투자 리포트"
+        "📈 QQQ AI 투자 리포트"
     )
 
 
@@ -88,6 +88,7 @@ def send_email(html):
     )
 
 
+
     server = smtplib.SMTP(
         "smtp.naver.com",
         587
@@ -97,10 +98,12 @@ def send_email(html):
     server.starttls()
 
 
+
     server.login(
         sender,
         password
     )
+
 
 
     server.sendmail(
@@ -110,7 +113,9 @@ def send_email(html):
     )
 
 
+
     server.quit()
+
 
 
     print(
