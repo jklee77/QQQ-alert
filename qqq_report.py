@@ -149,20 +149,18 @@ VIX :
 
 
     for item in detail:
-    print(item)
+        print(item)
 
 
+    html = create_report(
+        indicator,
+        score,
+        grade,
+        detail,
+        vix_price,
+        rate,
+        dxy_price
+    )
 
-html = create_report(
-    indicator,
-    score,
-    grade,
-    detail,
-    vix_price,
-    rate,
-    dxy_price
-)
 
-
-send_email(html)
-    main()
+    send_email(html)
