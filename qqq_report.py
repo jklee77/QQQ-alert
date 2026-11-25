@@ -1,319 +1,157 @@
-from data_loader import (
-    get_qqq,
-    get_vix,
-    get_dxy,
-    get_us10y
-)
+name: QQQ AI Daily Report
 
-from indicators import (
-    calculate_indicators,
-    get_indicator_summary
-)
 
-from scoring import (
-    calculate_final_score,
-    get_grade
-)
+on:
 
-from macro import (
-    calculate_macro_score,
-    get_fear_greed
-)
+  schedule:
 
-from ai_comment import (
-    create_comment
-)
+    # 매일 오전 7시 (한국시간 KST)
+    # GitHub Actions는 UTC 기준
+    # UTC 22:00 = KST 07:00
+    - cron: "0 22 * * *"
 
-from report import (
-    create_report
-)
 
-from mail import (
-    send_email
-)
+  # GitHub에서 수동 실행 가능
+  workflow_dispatch:
 
 
 
-def main():
+jobs:
 
-    print("==============================")
-    print("QQQ AI 투자 리포트 시작")
-    print("==============================")
 
+  qqq-report:
 
-    # =============================
-    # 데이터 수집
-    # =============================
 
-    qqq = get_qqq()
+    runs-on: ubuntu-latest
 
-    vix_data = get_vix()
 
-    dxy_data = get_dxy()
+    permissions:
 
-    rate_data = get_us10y()
+      contents: read
 
 
 
-    # =============================
-    # 기술 지표 계산
-    # =============================
+    steps:
 
-    qqq = calculate_indicators(
-        qqq
-    )
 
+      # ==========================
+      # 소스 코드 가져오기
+      # ==========================
 
-    indicator = get_indicator_summary(
-        qqq
-    )
+      - name: Checkout Repository
 
+        uses: actions/checkout@v4
 
 
-    # =============================
-    # 시장 데이터
-    # =============================
 
-    vix = float(
-        vix_data["Close"].iloc[-1]
-    )
+      # ==========================
+      # Python 환경 설정
+      # ==========================
 
+      - name: Setup Python
 
-    rate = float(
-        rate_data["Close"].iloc[-1]
-    )
+        uses: actions/setup-python@v5
 
+        with:
 
-    rate_prev = float(
-        rate_data["Close"].iloc[-2]
-    )
+          python-version: "3.11"
 
+          cache: "pip"
 
-    dxy = float(
-        dxy_data["Close"].iloc[-1]
-    )
 
 
-    dxy_prev = float(
-        dxy_data["Close"].iloc[-2]
-    )
+      # ==========================
+      # 라이브러리 설치
+      # ==========================
 
+      - name: Install Dependencies
 
+        run: |
 
-    # =============================
-    # Fear & Greed
-    # =============================
+          python -m pip install --upgrade pip
 
-    fear_greed = get_fear_greed()
+          pip install -r requirements.txt
 
 
 
-    # =============================
-    # 거시경제 분석
-    # =============================
+      # ==========================
+      # Secret 전달 확인
+      # ==========================
 
-    macro_score, macro_detail = calculate_macro_score(
+      - name: Check Secrets
 
-        vix,
+        env:
 
-        rate,
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 
-        rate_prev,
+          NAVER_EMAIL: ${{ secrets.NAVER_EMAIL }}
 
-        dxy,
+          NAVER_PASSWORD: ${{ secrets.NAVER_PASSWORD }}
 
-        dxy_prev
 
-    )
+        run: |
 
 
+          if [ -z "$OPENAI_API_KEY" ]; then
 
-    # =============================
-    # 최종 투자 점수
-    # =============================
+            echo "ERROR: OPENAI_API_KEY가 없습니다."
 
-    score, detail = calculate_final_score(
+            exit 1
 
-        indicator,
+          else
 
-        macro_score,
+            echo "OPENAI_API_KEY 정상 전달"
 
-        fear_greed
+          fi
 
-    )
 
 
-    grade = get_grade(
-        score
-    )
+          if [ -z "$NAVER_EMAIL" ]; then
 
+            echo "ERROR: NAVER_EMAIL이 없습니다."
 
+            exit 1
 
-    # =============================
-    # AI 투자 의견 생성
-    # =============================
+          else
 
-    comment = create_comment(
+            echo "NAVER_EMAIL 정상 전달"
 
-        score,
+          fi
 
-        grade,
 
-        indicator,
 
-        vix,
+          if [ -z "$NAVER_PASSWORD" ]; then
 
-        rate,
+            echo "ERROR: NAVER_PASSWORD가 없습니다."
 
-        dxy,
+            exit 1
 
-        macro_detail
+          else
 
-    )
+            echo "NAVER_PASSWORD 정상 전달"
 
+          fi
 
 
-    # =============================
-    # 콘솔 출력
-    # =============================
 
-    print()
 
-    print("==============================")
-    print("QQQ AI 투자 리포트")
-    print("==============================")
+      # ==========================
+      # QQQ AI 리포트 실행
+      # ==========================
 
+      - name: Run QQQ AI Report
 
-    print()
 
-    print(
-        "현재 가격:",
-        indicator["price"]
-    )
+        env:
 
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 
-    print()
+          NAVER_EMAIL: ${{ secrets.NAVER_EMAIL }}
 
-    print(
-        "투자 점수:",
-        score,
-        "/100"
-    )
+          NAVER_PASSWORD: ${{ secrets.NAVER_PASSWORD }}
 
 
-    print()
+        run: |
 
-    print(
-        "투자 등급:",
-        grade
-    )
 
-
-    print()
-
-    print("[AI 투자 의견]")
-
-    print(comment)
-
-
-
-    print()
-
-    print("[기술적 평가]")
-
-    for item in detail:
-
-        print(item)
-
-
-
-    print()
-
-    print("[거시경제 평가]")
-
-    for item in macro_detail:
-
-        print(item)
-
-
-
-    # =============================
-    # HTML 리포트 생성
-    # =============================
-
-    html = create_report(
-
-        indicator,
-
-        score,
-
-        grade,
-
-        detail,
-
-        vix,
-
-        rate,
-
-        dxy
-
-    )
-
-
-    html += f"""
-
-<h2>
-AI 투자 의견
-</h2>
-
-<div>
-
-{comment}
-
-</div>
-
-"""
-
-
-
-    # =============================
-    # 이메일 발송
-    # =============================
-
-    try:
-
-        send_email(
-            html
-        )
-
-        print()
-
-        print(
-            "메일 발송 성공"
-        )
-
-
-    except Exception as e:
-
-        print()
-
-        print(
-            "메일 발송 실패:",
-            e
-        )
-
-        raise
-
-
-
-    print()
-
-    print(
-        "QQQ 리포트 완료"
-    )
-
-
-
-if __name__ == "__main__":
-
-    main()
+          python qqq_report.py
