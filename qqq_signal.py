@@ -23,14 +23,17 @@ RECEIVE_EMAIL = os.environ["RECEIVE_EMAIL"]
 
 def get_qqq_data():
 
-    data = yf.download(
-        TICKER,
-        period="3mo",
-        interval="1d",
-        auto_adjust=True
-    )
+data = yf.download(
+    TICKER,
+    period="3mo",
+    interval="1d",
+    auto_adjust=True,
+    progress=False
+)
 
-    return data
+data.columns = data.columns.get_level_values(0)
+
+return data
 
 
 # ==========================
@@ -50,12 +53,12 @@ def analyze():
     yesterday = df.iloc[-2]
 
 
-    price = float(today["Close"])
-    ma5 = float(today["MA5"])
-    ma20 = float(today["MA20"])
+    price = float(today["Close"].iloc[0])
+ma5 = float(today["MA5"].iloc[0])
+ma20 = float(today["MA20"].iloc[0])
 
-    volume = float(today["Volume"])
-    avg_volume = float(today["VOL20"])
+volume = float(today["Volume"].iloc[0])
+avg_volume = float(today["VOL20"].iloc[0])
 
 
     message = None
