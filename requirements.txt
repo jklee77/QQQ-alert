@@ -1,4 +1,5 @@
-openai
-yfinance
 pandas
 numpy
+yfinance
+openai
+matplotlib
