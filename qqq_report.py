@@ -1,5 +1,3 @@
-from report import create_report
-from mail import send_email
 from data_loader import (
     get_qqq,
     get_vix,
@@ -13,92 +11,209 @@ from indicators import (
 )
 
 from scoring import (
-    calculate_score,
+    calculate_final_score,
     get_grade
 )
+
+from macro import (
+    calculate_macro_score,
+    get_fear_greed
+)
+
+from ai_comment import (
+    create_comment
+)
+
+from report import (
+    create_report
+)
+
+from mail import (
+    send_email
+)
+
 
 
 def main():
 
-    print("==========================")
-    print("QQQ AI 투자 리포트")
-    print("==========================")
+
+    print("==============================")
+    print("QQQ AI 투자 리포트 시작")
+    print("==============================")
 
 
+    # =================================
     # 데이터 수집
+    # =================================
+
 
     qqq = get_qqq()
 
-    vix = get_vix()
+    vix_data = get_vix()
 
-    dxy = get_dxy()
+    dxy_data = get_dxy()
 
-    us10y = get_us10y()
+    rate_data = get_us10y()
 
 
 
+    # =================================
     # 기술 지표 계산
-
-    qqq = calculate_indicators(qqq)
-
-    indicator = get_indicator_summary(qqq)
+    # =================================
 
 
-
-    # 거시경제 값
-
-    vix_price = float(
-        vix["Close"].iloc[-1]
+    qqq = calculate_indicators(
+        qqq
     )
 
 
-    dxy_price = float(
-        dxy["Close"].iloc[-1]
+    indicator = get_indicator_summary(
+        qqq
+    )
+
+
+
+    # =================================
+    # 현재 시장 데이터
+    # =================================
+
+
+    vix = float(
+        vix_data["Close"].iloc[-1]
     )
 
 
     rate = float(
-        us10y["Close"].iloc[-1]
+        rate_data["Close"].iloc[-1]
+    )
+
+
+    rate_prev = float(
+        rate_data["Close"].iloc[-2]
+    )
+
+
+    dxy = float(
+        dxy_data["Close"].iloc[-1]
+    )
+
+
+    dxy_prev = float(
+        dxy_data["Close"].iloc[-2]
     )
 
 
 
-    # 투자 점수 계산
+    # =================================
+    # Fear & Greed
+    # =================================
 
-    score, detail = calculate_score(
-        indicator,
-        vix_price,
+
+    fear_greed = get_fear_greed()
+
+
+
+    # =================================
+    # 거시경제 점수
+    # =================================
+
+
+    macro_score, macro_detail = calculate_macro_score(
+
+        vix,
+
         rate,
-        dxy_price
+
+        rate_prev,
+
+        dxy,
+
+        dxy_prev
+
     )
 
 
-    grade = get_grade(score)
+
+    # =================================
+    # 최종 투자 점수
+    # =================================
+
+
+    score, detail = calculate_final_score(
+
+        indicator,
+
+        macro_score,
+
+        fear_greed
+
+    )
 
 
 
-    # 리포트 출력
+    grade = get_grade(
+        score
+    )
+
+
+
+    # =================================
+    # AI 의견
+    # =================================
+
+
+    comment = create_comment(
+
+        score,
+
+        grade
+
+    )
+
+
+
+    # =================================
+    # 콘솔 출력
+    # =================================
+
 
     print(
 f"""
 
-━━━━━━━━━━━━━━━━━━
+================================
 
-QQQ 현재가
+QQQ AI 투자 리포트
 
+
+현재 가격 :
 ${indicator["price"]}
 
 
-기술적 분석
+
+투자 점수 :
+
+{score} / 100
+
+
+투자 등급 :
+
+{grade}
+
+
+
+기술 분석
 
 5일선 :
 {indicator["MA5"]}
 
+
 20일선 :
 {indicator["MA20"]}
 
+
 60일선 :
 {indicator["MA60"]}
+
 
 120일선 :
 {indicator["MA120"]}
@@ -112,55 +227,116 @@ MACD :
 {indicator["MACD"]}
 
 
-━━━━━━━━━━━━━━━━━━
 
 거시경제
 
+
 VIX :
-{vix_price}
+{vix}
+
 
 미국10년물 금리 :
 {rate}
 
+
 달러지수 :
-{dxy_price}
+{dxy}
+
+
+Fear & Greed :
+{fear_greed}
 
 
 
-━━━━━━━━━━━━━━━━━━
+AI 의견
 
-투자 평가
-
-
-종합 점수 :
-
-{score} / 100
+{comment}
 
 
-투자 등급 :
-
-{grade}
-
-
-━━━━━━━━━━━━━━━━━━
+================================
 
 """
     )
 
 
+
+    print("\n[상세 평가]")
+
+
     for item in detail:
+
         print(item)
 
 
+
+    print("\n[거시경제 평가]")
+
+
+    for item in macro_detail:
+
+        print(item)
+
+
+
+    # =================================
+    # 이메일 HTML 생성
+    # =================================
+
+
     html = create_report(
+
         indicator,
+
         score,
+
         grade,
+
         detail,
-        vix_price,
+
+        vix,
+
         rate,
-        dxy_price
+
+        dxy
+
     )
 
 
-    send_email(html)
+
+    html += f"""
+
+<h3>
+AI 투자 의견
+</h3>
+
+<p>
+
+{comment}
+
+</p>
+
+"""
+
+
+
+    # =================================
+    # 이메일 발송
+    # =================================
+
+
+    send_email(
+        html
+    )
+
+
+
+    print(
+        "QQQ 리포트 완료"
+    )
+
+
+
+
+if __name__ == "__main__":
+
+    main()
