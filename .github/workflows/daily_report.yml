@@ -6,34 +6,125 @@ on:
   workflow_dispatch:
 
   schedule:
-    - cron: '30 22 * * 1-5'
+
+    # 한국시간 오전 7시 30분
+    # UTC 22:30 (월~금)
+    - cron: "30 22 * * 1-5"
+
 
 
 jobs:
 
   report:
 
+
     runs-on: ubuntu-latest
+
+
+    permissions:
+
+      contents: read
+
 
 
     steps:
 
-    - name: 코드 가져오기
-      uses: actions/checkout@v4
+
+      - name: Checkout Repository
+
+        uses: actions/checkout@v4
 
 
-    - name: Python 설치
-      uses: actions/setup-python@v5
 
-      with:
-        python-version: "3.11"
+      - name: Setup Python
 
+        uses: actions/setup-python@v5
 
-    - name: 라이브러리 설치
-      run: |
-        pip install -r requirements.txt
+        with:
+
+          python-version: "3.11"
 
 
-    - name: QQQ 리포트 실행
-      run: |
-        python qqq_report.py
+
+      - name: Install Packages
+
+        run: |
+
+          python -m pip install --upgrade pip
+
+          pip install -r requirements.txt
+
+
+
+      # GitHub Secret 전달 확인
+      - name: Check Secrets
+
+        env:
+
+          NAVER_EMAIL: ${{ secrets.NAVER_EMAIL }}
+
+          NAVER_PASSWORD: ${{ secrets.NAVER_PASSWORD }}
+
+          RECEIVE_EMAIL: ${{ secrets.RECEIVE_EMAIL }}
+
+
+        run: |
+
+          echo "=============================="
+
+          echo "Secret Check"
+
+          echo "=============================="
+
+
+          if [ -z "$NAVER_EMAIL" ]; then
+
+            echo "NAVER_EMAIL : EMPTY"
+
+          else
+
+            echo "NAVER_EMAIL : OK"
+
+          fi
+
+
+
+          if [ -z "$NAVER_PASSWORD" ]; then
+
+            echo "NAVER_PASSWORD : EMPTY"
+
+          else
+
+            echo "NAVER_PASSWORD : OK"
+
+          fi
+
+
+
+          if [ -z "$RECEIVE_EMAIL" ]; then
+
+            echo "RECEIVE_EMAIL : EMPTY"
+
+          else
+
+            echo "RECEIVE_EMAIL : OK"
+
+          fi
+
+
+
+      # QQQ AI 리포트 실행
+      - name: Run QQQ AI Report
+
+        env:
+
+          NAVER_EMAIL: ${{ secrets.NAVER_EMAIL }}
+
+          NAVER_PASSWORD: ${{ secrets.NAVER_PASSWORD }}
+
+          RECEIVE_EMAIL: ${{ secrets.RECEIVE_EMAIL }}
+
+
+        run: |
+
+          python qqq_report.py
