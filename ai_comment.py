@@ -1,45 +1,94 @@
-def create_comment(score, grade):
+import os
+from openai import OpenAI
 
 
-    if score >= 90:
+def create_comment(
+    score,
+    grade,
+    indicator,
+    vix,
+    rate,
+    dxy,
+    macro_detail
+):
 
-        return (
-            "현재 QQQ 시장 환경은 매우 우호적입니다. "
-            "기술적 상승 추세와 거시 환경이 모두 긍정적이며 "
-            "적극적인 분할매수를 고려할 수 있습니다."
+    client = OpenAI(
+        api_key=os.environ.get(
+            "OPENAI_API_KEY"
         )
+    )
 
 
-    elif score >= 80:
+    prompt = f"""
+당신은 미국 ETF 전문 투자 애널리스트입니다.
 
-        return (
-            "QQQ 상승 추세가 유지되고 있습니다. "
-            "금리와 시장 심리를 확인하면서 "
-            "분할매수 전략이 유효합니다."
-        )
+QQQ 투자 분석 리포트를 작성하세요.
+
+[현재 투자 데이터]
+
+QQQ 현재 가격:
+{indicator.get("price")}
+
+투자 점수:
+{score}/100
+
+투자 등급:
+{grade}
+
+VIX:
+{vix}
+
+미국 10년물 금리:
+{rate}
+
+달러 인덱스:
+{dxy}
 
 
-    elif score >= 70:
+[거시경제 평가]
 
-        return (
-            "시장 환경은 양호하지만 일부 위험 요소가 존재합니다. "
-            "한 번에 투자하기보다 단계적 접근을 권장합니다."
-        )
+{macro_detail}
 
 
-    elif score >= 60:
+다음 내용을 포함하여 작성하세요.
 
-        return (
-            "시장 방향은 중립입니다. "
-            "신규 매수보다는 기존 보유 관리와 "
-            "추가 매수 시점 확인이 필요합니다."
-        )
+1. 현재 시장 상황 요약
+2. 기술적 분석 평가
+3. 거시경제 위험 요인
+4. 투자 전략 제안
+
+마지막에는 반드시 아래 형식으로 결론을 작성하세요.
+
+투자 판단:
+- 적극매수 / 분할매수 / 보유 / 비중축소 / 매도
+
+투자 의견은 5~8문장으로 작성하고,
+전문 투자 리포트처럼 작성하세요.
+"""
 
 
-    else:
+    response = client.chat.completions.create(
 
-        return (
-            "현재 시장 위험도가 높습니다. "
-            "현금 비중을 유지하고 "
-            "추세 회복 확인이 필요합니다."
-        )
+        model="gpt-4.1-mini",
+
+        messages=[
+
+            {
+                "role": "system",
+                "content":
+                "당신은 월스트리트 투자 애널리스트입니다."
+            },
+
+            {
+                "role": "user",
+                "content": prompt
+            }
+
+        ],
+
+        temperature=0.3
+
+    )
+
+
+    return response.choices[0].message.content
