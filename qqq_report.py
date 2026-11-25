@@ -324,28 +324,19 @@ AI 투자 의견
     # =================================
 
 
-    try:
+     try:
 
-    send_email(html)
-
-
-except Exception as e:
+        send_email(html)
 
 
-    print(
-        "메일 발송 실패:",
-        e
-    )
+    except Exception as e:
 
+        print(
+            "메일 발송 실패:",
+            e
+        )
 
 
     print(
         "QQQ 리포트 완료"
     )
-
-
-
-
-if __name__ == "__main__":
-
-    main()
