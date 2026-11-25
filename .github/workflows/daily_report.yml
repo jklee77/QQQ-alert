@@ -5,13 +5,13 @@ on:
 
   schedule:
 
-    # 매일 오전 7시 (한국시간 KST)
-    # GitHub Actions는 UTC 기준
+    # 매일 오전 7시 (한국시간)
+    # GitHub Actions UTC 기준
     # UTC 22:00 = KST 07:00
+
     - cron: "0 22 * * *"
 
 
-  # GitHub에서 수동 실행 가능
   workflow_dispatch:
 
 
@@ -25,6 +25,7 @@ jobs:
     runs-on: ubuntu-latest
 
 
+
     permissions:
 
       contents: read
@@ -35,7 +36,7 @@ jobs:
 
 
       # ==========================
-      # 소스 코드 가져오기
+      # 코드 다운로드
       # ==========================
 
       - name: Checkout Repository
@@ -45,7 +46,7 @@ jobs:
 
 
       # ==========================
-      # Python 환경 설정
+      # Python 설정
       # ==========================
 
       - name: Setup Python
@@ -56,7 +57,7 @@ jobs:
 
           python-version: "3.11"
 
-          cache: "pip"
+          cache: pip
 
 
 
@@ -75,10 +76,10 @@ jobs:
 
 
       # ==========================
-      # Secret 전달 확인
+      # Secret 확인
       # ==========================
 
-      - name: Check Secrets
+      - name: Check Environment Variables
 
         env:
 
@@ -92,15 +93,18 @@ jobs:
         run: |
 
 
+          echo "환경 변수 확인"
+
+
           if [ -z "$OPENAI_API_KEY" ]; then
 
-            echo "ERROR: OPENAI_API_KEY가 없습니다."
+            echo "❌ OPENAI_API_KEY 없음"
 
             exit 1
 
           else
 
-            echo "OPENAI_API_KEY 정상 전달"
+            echo "✅ OPENAI_API_KEY 확인"
 
           fi
 
@@ -108,13 +112,13 @@ jobs:
 
           if [ -z "$NAVER_EMAIL" ]; then
 
-            echo "ERROR: NAVER_EMAIL이 없습니다."
+            echo "❌ NAVER_EMAIL 없음"
 
             exit 1
 
           else
 
-            echo "NAVER_EMAIL 정상 전달"
+            echo "✅ NAVER_EMAIL 확인"
 
           fi
 
@@ -122,13 +126,13 @@ jobs:
 
           if [ -z "$NAVER_PASSWORD" ]; then
 
-            echo "ERROR: NAVER_PASSWORD가 없습니다."
+            echo "❌ NAVER_PASSWORD 없음"
 
             exit 1
 
           else
 
-            echo "NAVER_PASSWORD 정상 전달"
+            echo "✅ NAVER_PASSWORD 확인"
 
           fi
 
@@ -144,11 +148,15 @@ jobs:
 
         env:
 
+
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+
 
           NAVER_EMAIL: ${{ secrets.NAVER_EMAIL }}
 
+
           NAVER_PASSWORD: ${{ secrets.NAVER_PASSWORD }}
+
 
 
         run: |
