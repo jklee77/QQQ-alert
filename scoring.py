@@ -1,8 +1,7 @@
-def calculate_score(
+def calculate_final_score(
     indicator,
-    vix,
-    rate,
-    dxy
+    macro_score,
+    fear_greed
 ):
 
     score = 0
@@ -10,50 +9,28 @@ def calculate_score(
     detail = []
 
 
-    # ======================
-    # 기술적 분석 60점
-    # ======================
+    # =====================
+    # 기술적 분석 50점
+    # =====================
 
 
-    # 현재가 > 20일선
     if indicator["price"] > indicator["MA20"]:
 
         score += 15
 
         detail.append(
-            "✅ 현재가 > 20일선 +15"
+            "✅ 가격 20일선 위 +15"
         )
 
-
-    else:
-
-        detail.append(
-            "❌ 현재가 < 20일선 +0"
-        )
-
-
-
-    # 5일선 > 20일선
 
     if indicator["MA5"] > indicator["MA20"]:
 
         score += 15
 
         detail.append(
-            "✅ 5일선 > 20일선 +15"
+            "✅ 단기 상승추세 +15"
         )
 
-
-
-    else:
-
-        detail.append(
-            "❌ 5일선 약세 +0"
-        )
-
-
-
-    # 20일선 > 60일선
 
     if indicator["MA20"] > indicator["MA60"]:
 
@@ -64,145 +41,100 @@ def calculate_score(
         )
 
 
-    else:
-
-        detail.append(
-            "❌ 중기 약세 +0"
-        )
-
-
-
-    # RSI
-
     if 40 <= indicator["RSI"] <= 70:
-
-        score += 10
-
-        detail.append(
-            "✅ RSI 정상 +10"
-        )
-
-
-    else:
-
-        detail.append(
-            "⚠ RSI 주의 +0"
-        )
-
-
-
-    # MACD
-
-    if indicator["MACD"] > indicator["MACD_SIGNAL"]:
-
-        score += 10
-
-        detail.append(
-            "✅ MACD 상승 +10"
-        )
-
-
-    else:
-
-        detail.append(
-            "❌ MACD 약세 +0"
-        )
-
-
-
-    # ======================
-    # 거래량 10점
-    # ======================
-
-
-    if indicator["Volume"] > indicator["Volume_AVG"]:
-
-        score += 10
-
-        detail.append(
-            "✅ 거래량 증가 +10"
-        )
-
-
-
-    # ======================
-    # 거시경제 30점
-    # ======================
-
-
-    # VIX
-
-    if vix < 20:
-
-        score += 10
-
-        detail.append(
-            "✅ VIX 안정 +10"
-        )
-
-
-    elif vix < 30:
 
         score += 5
 
         detail.append(
-            "⚠ VIX 보통 +5"
+            "✅ RSI 정상 +5"
         )
 
 
-    else:
+    if indicator["MACD"] > indicator["MACD_SIGNAL"]:
+
+        score += 5
 
         detail.append(
-            "❌ 공포구간 +0"
+            "✅ MACD 상승 +5"
         )
 
 
+    # =====================
+    # 거시경제 30점
+    # =====================
 
-    # 금리
 
-    if rate < 4.5:
+    macro = min(
+        macro_score,
+        30
+    )
+
+    score += macro
+
+
+    detail.append(
+        f"🌎 거시경제 +{macro}"
+    )
+
+
+    # =====================
+    # 시장 심리 10점
+    # =====================
+
+
+    if 40 <= fear_greed <= 70:
 
         score += 10
 
         detail.append(
-            "✅ 금리 부담 낮음 +10"
+            "😊 시장심리 안정 +10"
+        )
+
+
+    elif fear_greed < 40:
+
+        score += 7
+
+        detail.append(
+            "😨 공포구간 +7"
         )
 
 
     else:
 
+        score += 5
+
         detail.append(
-            "⚠ 금리 부담 +0"
+            "⚠ 과열주의 +5"
         )
 
 
+    # =====================
+    # 위험관리 10점
+    # =====================
 
-    # 달러
 
-    if dxy < 105:
+    if indicator["Volume"] >= indicator["Volume_AVG"]:
 
-        score += 10
+        score += 5
 
         detail.append(
-            "✅ 달러 안정 +10"
+            "📈 거래량 확인 +5"
         )
 
 
-    else:
+    if indicator["RSI"] < 75:
+
+        score += 5
 
         detail.append(
-            "⚠ 달러 강세 +0"
+            "🛡 과매수 위험 낮음 +5"
         )
-
 
 
     return score, detail
 
 
-
-# ======================
-# 투자 등급
-# ======================
 
 def get_grade(score):
 
@@ -231,11 +163,6 @@ def get_grade(score):
         return "🟠 관망"
 
 
-    elif score >= 40:
-
-        return "🔴 비중축소"
-
-
     else:
 
-        return "⚫ 매도 검토"
+        return "🔴 비중축소"
