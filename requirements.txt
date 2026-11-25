@@ -1,3 +1,4 @@
+openai
 yfinance
 pandas
-requests
+numpy
