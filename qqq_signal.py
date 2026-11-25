@@ -2,13 +2,10 @@ import yfinance as yf
 import pandas as pd
 import smtplib
 import os
+
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
-
-# ==========================
-# 기본 설정
-# ==========================
 
 TICKER = "QQQ"
 
@@ -17,39 +14,90 @@ NAVER_PASSWORD = os.environ["NAVER_PASSWORD"]
 RECEIVE_EMAIL = os.environ["RECEIVE_EMAIL"]
 
 
+
 # ==========================
-# QQQ 데이터 가져오기
+# 데이터 가져오기
 # ==========================
 
-def get_qqq_data():
+def get_data():
 
-    data = yf.download(
+    df = yf.download(
         TICKER,
-        period="3mo",
+        period="6mo",
         interval="1d",
         auto_adjust=True,
         progress=False
     )
 
-    data.columns = data.columns.get_level_values(0)
+    df.columns = df.columns.get_level_values(0)
 
-    return data
+    return df
+
 
 
 # ==========================
-# 투자 신호 분석
+# RSI 계산
+# ==========================
+
+def calculate_rsi(series, period=14):
+
+    delta = series.diff()
+
+    gain = delta.clip(lower=0)
+    loss = -delta.clip(upper=0)
+
+    avg_gain = gain.rolling(period).mean()
+    avg_loss = loss.rolling(period).mean()
+
+    rs = avg_gain / avg_loss
+
+    rsi = 100 - (100 / (1 + rs))
+
+    return rsi
+
+
+
+# ==========================
+# 분석
 # ==========================
 
 def analyze():
 
-    df = get_qqq_data()
+    df = get_data()
+
 
     df["MA5"] = df["Close"].rolling(5).mean()
     df["MA20"] = df["Close"].rolling(20).mean()
-    df["VOL20"] = df["Volume"].rolling(20).mean()
+
+    df["VOL20"] = (
+        df["Volume"]
+        .rolling(20)
+        .mean()
+    )
+
+
+    df["RSI"] = calculate_rsi(
+        df["Close"]
+    )
+
+
+    # 볼린저밴드
+
+    df["STD20"] = (
+        df["Close"]
+        .rolling(20)
+        .std()
+    )
+
+    df["BB_UPPER"] = (
+        df["MA20"]
+        +
+        df["STD20"] * 2
+    )
+
 
     today = df.iloc[-1]
-    yesterday = df.iloc[-2]
+
 
     price = float(today["Close"])
     ma5 = float(today["MA5"])
@@ -58,79 +106,154 @@ def analyze():
     volume = float(today["Volume"])
     avg_volume = float(today["VOL20"])
 
-    title = None
-    message = None
+    rsi = float(today["RSI"])
+
+    upper = float(today["BB_UPPER"])
 
 
-    # 매수 조건
-    buy_signal = (
-        price > ma20
-        and ma5 > ma20
-        and volume > avg_volume
-        and price <= ma20 * 1.05
+
+    score = 0
+
+    report = []
+
+
+    # 추세 점수
+
+    if price > ma20:
+        score += 1
+        report.append("✅ 현재가 20일선 위")
+
+    else:
+        report.append("❌ 현재가 20일선 아래")
+
+
+
+    if ma5 > ma20:
+        score += 1
+        report.append("✅ 단기 상승 추세")
+
+    else:
+        score -= 1
+        report.append("❌ 단기 약세")
+
+
+
+    if ma20 > float(df["MA20"].iloc[-5]):
+        score += 1
+        report.append("✅ 20일선 상승")
+
+
+
+    # RSI 점수
+
+    if 50 <= rsi < 70:
+
+        score += 2
+        report.append(
+            f"✅ RSI 정상 상승 ({rsi:.1f})"
+        )
+
+    elif rsi >= 70:
+
+        report.append(
+            f"⚠ RSI 과열 ({rsi:.1f})"
+        )
+
+    else:
+
+        score -= 1
+        report.append(
+            f"❌ RSI 약세 ({rsi:.1f})"
+        )
+
+
+
+    # 거래량
+
+    if volume > avg_volume:
+
+        score += 1
+        report.append(
+            "✅ 거래량 증가"
+        )
+
+
+
+    # 볼린저 위험
+
+    if price < upper:
+
+        score += 1
+        report.append(
+            "✅ 과열 구간 아님"
+        )
+
+    else:
+
+        report.append(
+            "⚠ 볼린저 상단 돌파"
+        )
+
+
+
+    if score >= 6:
+
+        status = "🟢 강한 매수 후보"
+
+    elif score >=4:
+
+        status = "🟡 관심 구간"
+
+    elif score <= -2:
+
+        status = "🔴 위험 구간"
+
+    else:
+
+        status = "⚪ 관망"
+
+
+
+    title = (
+        f"[QQQ 투자 분석] {status}"
     )
 
 
-    if buy_signal:
+    message = f"""
+QQQ 투자 분석 리포트
 
-        title = "[QQQ 투자 알림] 매수 신호 발생"
-
-        message = f"""
-QQQ 매수 신호 발생
 
 현재 가격:
 ${price:.2f}
 
-5일 이동평균:
-${ma5:.2f}
 
-20일 이동평균:
-${ma20:.2f}
+투자 점수:
+{score} / 7
 
-조건:
-✅ 20일선 위
-✅ 5일선 > 20일선
-✅ 거래량 증가
 
-전략:
-분할 매수 검토
+판단:
+{status}
+
+
+분석 내용:
 """
 
-
-    # 매도 조건
-    sell_signal = (
-        price < ma20
-        and yesterday["Close"] < yesterday["MA20"]
-        and ma5 < ma20
-    )
+    for r in report:
+        message += "\n" + r
 
 
-    if sell_signal:
-
-        title = "[QQQ 투자 알림] 매도 검토 신호 발생"
-
-        message = f"""
-QQQ 매도 검토 신호 발생
-
-현재 가격:
-${price:.2f}
-
-5일 이동평균:
-${ma5:.2f}
-
-20일 이동평균:
-${ma20:.2f}
-
-조건:
-❌ 20일선 이탈
-❌ 단기 추세 약화
+    message += """
 
 전략:
-보유 비중 축소 검토
+점수 기반 분할 대응
+
+
+※ 본 알림은 투자 참고용입니다.
 """
 
 
     return title, message
+
 
 
 
@@ -139,9 +262,6 @@ ${ma20:.2f}
 # ==========================
 
 def send_email(title, body):
-
-    if body is None:
-        return
 
 
     msg = MIMEMultipart()
@@ -172,7 +292,6 @@ def send_email(title, body):
         NAVER_PASSWORD
     )
 
-
     server.send_message(msg)
 
     server.quit()
@@ -192,4 +311,4 @@ if __name__ == "__main__":
         body
     )
 
-    print("QQQ 분석 완료")
+    print("QQQ 점수 분석 완료")
