@@ -1,3 +1,5 @@
+from report import create_report
+from mail import send_email
 from data_loader import (
     get_qqq,
     get_vix,
@@ -147,11 +149,20 @@ VIX :
 
 
     for item in detail:
-
-        print(item)
-
+    print(item)
 
 
-if __name__ == "__main__":
 
+html = create_report(
+    indicator,
+    score,
+    grade,
+    detail,
+    vix_price,
+    rate,
+    dxy_price
+)
+
+
+send_email(html)
     main()
