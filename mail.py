@@ -3,15 +3,11 @@ import smtplib
 
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.mime.image import MIMEImage
 
 
 
-def send_email(html):
-
-
-    print()
-
-    print("메일 환경 확인")
+def send_email(html, chart_file=None):
 
 
     sender = os.getenv(
@@ -29,17 +25,19 @@ def send_email(html):
     )
 
 
+    print()
+
+    print("메일 환경 확인")
+
     print(
         "EMAIL:",
         "***"
     )
 
-
     print(
         "PASSWORD:",
         "입력됨" if password else "없음"
     )
-
 
     print(
         "RECEIVER:",
@@ -62,33 +60,105 @@ def send_email(html):
         )
 
 
-    if not receiver:
-
-        raise Exception(
-            "수신 이메일 없음"
-        )
-
-
-
-    msg = MIMEMultipart()
+    msg = MIMEMultipart(
+        "related"
+    )
 
 
     msg["From"] = sender
 
     msg["To"] = receiver
 
-    msg["Subject"] = "QQQ AI 투자 리포트"
+    msg["Subject"] = (
+        "QQQ AI 투자 리포트"
+    )
 
+
+
+    body = MIMEText(
+
+        html,
+
+        "html",
+
+        "utf-8"
+
+    )
 
 
     msg.attach(
-        MIMEText(
-            html,
-            "html",
-            "utf-8"
-        )
+        body
     )
 
+
+
+    # =========================
+    # 차트 이미지 첨부
+    # =========================
+
+    if chart_file:
+
+
+        try:
+
+
+            with open(
+
+                chart_file,
+
+                "rb"
+
+            ) as f:
+
+
+                img = MIMEImage(
+                    f.read()
+                )
+
+
+            img.add_header(
+
+                "Content-ID",
+
+                "<qqq_chart>"
+
+            )
+
+
+            img.add_header(
+
+                "Content-Disposition",
+
+                "inline",
+
+                filename="qqq_chart.png"
+
+            )
+
+
+            msg.attach(
+                img
+            )
+
+
+            print(
+                "차트 첨부 완료"
+            )
+
+
+        except Exception as e:
+
+
+            print(
+                "차트 첨부 실패:",
+                e
+            )
+
+
+
+    # =========================
+    # 네이버 메일 발송
+    # =========================
 
 
     try:
