@@ -324,8 +324,17 @@ AI 투자 의견
     # =================================
 
 
-    send_email(
-        html
+    try:
+
+    send_email(html)
+
+
+except Exception as e:
+
+
+    print(
+        "메일 발송 실패:",
+        e
     )
 
 
