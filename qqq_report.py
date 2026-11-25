@@ -32,9 +32,20 @@ from mail import (
     send_email
 )
 
+from score_history import (
+    get_previous_score,
+    save_score,
+    score_change_report
+)
+
+from chart import (
+    create_qqq_chart
+)
+
 
 
 def main():
+
 
     print("==============================")
     print("QQQ AI 투자 리포트 시작")
@@ -56,7 +67,7 @@ def main():
 
 
     # =============================
-    # 기술적 지표 계산
+    # 기술적 분석
     # =============================
 
     qqq = calculate_indicators(
@@ -150,7 +161,41 @@ def main():
 
 
     # =============================
-    # AI 투자 의견 생성
+    # 전일 대비 점수 분석
+    # =============================
+
+    previous_score = get_previous_score()
+
+
+    change_report = score_change_report(
+
+        score,
+
+        previous_score
+
+    )
+
+
+    save_score(
+        score
+    )
+
+
+
+    # =============================
+    # QQQ 차트 생성
+    # =============================
+
+    chart_file = create_qqq_chart(
+
+        qqq
+
+    )
+
+
+
+    # =============================
+    # AI 투자 의견
     # =============================
 
     comment = create_comment(
@@ -211,14 +256,32 @@ def main():
 
     print()
 
-    print("[AI 투자 의견]")
-    print(comment)
+    print(
+        "전일 변화:"
+    )
+
+    print(
+        change_report
+    )
+
+
+    print()
+
+    print(
+        "[AI 투자 의견]"
+    )
+
+    print(
+        comment
+    )
 
 
 
     print()
 
-    print("[기술적 평가]")
+    print(
+        "[기술적 평가]"
+    )
 
 
     for item in detail:
@@ -229,7 +292,9 @@ def main():
 
     print()
 
-    print("[거시경제 평가]")
+    print(
+        "[거시경제 평가]"
+    )
 
 
     for item in macro_detail:
@@ -261,12 +326,48 @@ def main():
     )
 
 
+
     html += f"""
 
-<h2>AI 투자 의견</h2>
+<h2>
+📊 전일 대비 투자점수 변화
+</h2>
+
 
 <p>
+
+현재 점수:
+{score}/100
+
+</p>
+
+
+<p>
+
+{change_report}
+
+</p>
+
+
+
+<h2>
+📈 QQQ 기술 분석 차트
+</h2>
+
+
+<img src="cid:qqq_chart">
+
+
+
+<h2>
+🤖 AI 투자 의견
+</h2>
+
+
+<p>
+
 {comment}
+
 </p>
 
 """
@@ -279,9 +380,15 @@ def main():
 
     try:
 
+
         send_email(
-            html
+
+            html,
+
+            chart_file
+
         )
+
 
         print()
 
@@ -292,12 +399,14 @@ def main():
 
     except Exception as e:
 
+
         print()
 
         print(
             "메일 발송 실패:",
             e
         )
+
 
         raise
 
@@ -308,6 +417,8 @@ def main():
     print(
         "QQQ 리포트 완료"
     )
+
+
 
 
 
