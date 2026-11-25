@@ -40,6 +40,134 @@ def get_data():
 # ==========================
 
 def calculate_rsi(series, period=14):
+    
+    def get_macro_score():
+
+    total = 0
+    comments = []
+
+
+    # =================
+    # 금리 (^TNX)
+    # =================
+
+    rate = yf.download(
+        "^TNX",
+        period="1mo",
+        interval="1d",
+        progress=False
+    )
+
+    rate.columns = rate.columns.get_level_values(0)
+
+    rate_now = float(rate["Close"].iloc[-1])
+    rate_before = float(rate["Close"].iloc[-6])
+
+    rate_change = rate_now - rate_before
+
+
+    if rate_change < -0.15:
+        total += 3
+        comments.append(
+            f"✅ 금리 하락 우호적 ({rate_now:.2f}%)"
+        )
+
+    elif rate_change > 0.15:
+        total -= 2
+        comments.append(
+            f"⚠ 금리 상승 부담 ({rate_now:.2f}%)"
+        )
+
+    else:
+        total += 1
+        comments.append(
+            f"➖ 금리 안정 ({rate_now:.2f}%)"
+        )
+
+
+
+    # =================
+    # VIX
+    # =================
+
+    vix = yf.download(
+        "^VIX",
+        period="1mo",
+        interval="1d",
+        progress=False
+    )
+
+    vix.columns = vix.columns.get_level_values(0)
+
+    vix_now = float(vix["Close"].iloc[-1])
+
+
+    if vix_now < 15:
+
+        total += 3
+        comments.append(
+            f"✅ 시장 안정 VIX {vix_now:.1f}"
+        )
+
+    elif vix_now > 25:
+
+        total -= 2
+        comments.append(
+            f"⚠ 공포 구간 VIX {vix_now:.1f}"
+        )
+
+    else:
+
+        total += 1
+        comments.append(
+            f"➖ 정상 VIX {vix_now:.1f}"
+        )
+
+
+
+    # =================
+    # 달러 DXY
+    # =================
+
+    dxy = yf.download(
+        "DX-Y.NYB",
+        period="1mo",
+        interval="1d",
+        progress=False
+    )
+
+    dxy.columns = dxy.columns.get_level_values(0)
+
+    dxy_now = float(dxy["Close"].iloc[-1])
+    dxy_before = float(dxy["Close"].iloc[-6])
+
+
+    dxy_change = dxy_now - dxy_before
+
+
+    if dxy_change < -0.5:
+
+        total += 2
+        comments.append(
+            f"✅ 달러 약세 우호적 ({dxy_now:.2f})"
+        )
+
+    elif dxy_change > 0.5:
+
+        total -= 1
+        comments.append(
+            f"⚠ 달러 강세 부담 ({dxy_now:.2f})"
+        )
+
+    else:
+
+        total += 1
+        comments.append(
+            f"➖ 달러 안정 ({dxy_now:.2f})"
+        )
+
+
+    return total, comments
 
     delta = series.diff()
 
@@ -115,6 +243,12 @@ def analyze():
     score = 0
 
     report = []
+
+    macro_score, macro_report = get_macro_score()
+
+score += macro_score
+
+report.extend(macro_report)
 
 
     # 추세 점수
@@ -196,11 +330,11 @@ def analyze():
 
 
 
-    if score >= 6:
+    if score >= 14:
 
         status = "🟢 강한 매수 후보"
 
-    elif score >=4:
+    elif score >=10:
 
         status = "🟡 관심 구간"
 
