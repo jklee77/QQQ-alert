@@ -19,6 +19,9 @@ def main():
 
 
     qqq = get_qqq()
+    qqq = calculate_indicators(qqq)
+
+    indicator = get_indicator_summary(qqq)
     vix = get_vix()
     dxy = get_dxy()
     us10y = get_us10y()
@@ -58,7 +61,41 @@ VIX :
 데이터 수집 완료
 """
     )
+    
+print(
+f"""
 
+기술적 분석
+
+현재가격 :
+${indicator['price']}
+
+5일선 :
+{indicator['MA5']}
+
+20일선 :
+{indicator['MA20']}
+
+60일선 :
+{indicator['MA60']}
+
+120일선 :
+{indicator['MA120']}
+
+RSI :
+{indicator['RSI']}
+
+MACD :
+{indicator['MACD']}
+
+거래량 :
+{indicator['Volume']:,}
+
+20일 평균거래량 :
+{indicator['Volume_AVG']:,}
+
+"""
+)
 
 if __name__ == "__main__":
     main()
