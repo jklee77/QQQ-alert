@@ -23,17 +23,17 @@ RECEIVE_EMAIL = os.environ["RECEIVE_EMAIL"]
 
 def get_qqq_data():
 
-data = yf.download(
-    TICKER,
-    period="3mo",
-    interval="1d",
-    auto_adjust=True,
-    progress=False
-)
+    data = yf.download(
+        TICKER,
+        period="3mo",
+        interval="1d",
+        auto_adjust=True,
+        progress=False
+    )
 
-data.columns = data.columns.get_level_values(0)
+    data.columns = data.columns.get_level_values(0)
 
-return data
+    return data
 
 
 # ==========================
