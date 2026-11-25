@@ -5,6 +5,11 @@ from data_loader import (
     get_us10y
 )
 
+from indicators import (
+    calculate_indicators,
+    get_indicator_summary
+)
+
 
 def main():
 
