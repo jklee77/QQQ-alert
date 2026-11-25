@@ -19,20 +19,19 @@ RECEIVE_EMAIL = os.environ["RECEIVE_EMAIL"]
 # 데이터 가져오기
 # ==========================
 
-def get_data():
+def get_qqq_data():
 
-    df = yf.download(
+    data = yf.download(
         TICKER,
-        period="6mo",
+        period="3mo",
         interval="1d",
         auto_adjust=True,
         progress=False
     )
 
-    df.columns = df.columns.get_level_values(0)
+    data.columns = data.columns.get_level_values(0)
 
-    return df
-
+    return data
 
 
 # ==========================
@@ -191,16 +190,11 @@ def calculate_rsi(series, period=14):
 
 def analyze():
 
-    df = get_data()
-
+    df = get_qqq_data()
 
     df["MA5"] = df["Close"].rolling(5).mean()
     df["MA20"] = df["Close"].rolling(20).mean()
-
-    df["VOL20"] = (
-        df["Volume"]
-        .rolling(20)
-        .mean()
+    df["VOL20"] = df["Volume"].rolling(20).mean()
     )
 
 
