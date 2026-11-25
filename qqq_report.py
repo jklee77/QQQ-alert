@@ -18,18 +18,35 @@ def main():
     print("==========================")
 
 
-    qqq = get_qqq()
-    qqq = calculate_indicators(qqq)
+    # =====================
+    # 데이터 수집
+    # =====================
 
-    indicator = get_indicator_summary(qqq)
+    qqq = get_qqq()
+
     vix = get_vix()
+
     dxy = get_dxy()
+
     us10y = get_us10y()
 
 
-    qqq_price = float(
-        qqq["Close"].iloc[-1]
-    )
+
+    # =====================
+    # 기술적 지표 계산
+    # =====================
+
+    qqq = calculate_indicators(qqq)
+
+    indicator = get_indicator_summary(qqq)
+
+
+
+    # =====================
+    # 거시경제 데이터
+    # =====================
+
+    qqq_price = indicator["price"]
 
     vix_price = float(
         vix["Close"].iloc[-1]
@@ -44,58 +61,87 @@ def main():
     )
 
 
+
+    # =====================
+    # 출력
+    # =====================
+
     print(
-        f"""
-QQQ 현재가 :
-${qqq_price:.2f}
-
-VIX :
-{vix_price:.2f}
-
-달러지수 :
-{dxy_price:.2f}
-
-미국10년물 금리 :
-{rate:.2f}
-
-데이터 수집 완료
-"""
-    )
-    
-print(
 f"""
 
+QQQ 현재가
+${qqq_price}
+
+
+━━━━━━━━━━━━━━━━
 기술적 분석
+━━━━━━━━━━━━━━━━
 
-현재가격 :
-${indicator['price']}
 
-5일선 :
-{indicator['MA5']}
+5일 이동평균
+{indicator["MA5"]}
 
-20일선 :
-{indicator['MA20']}
 
-60일선 :
-{indicator['MA60']}
+20일 이동평균
+{indicator["MA20"]}
 
-120일선 :
-{indicator['MA120']}
 
-RSI :
-{indicator['RSI']}
+60일 이동평균
+{indicator["MA60"]}
 
-MACD :
-{indicator['MACD']}
 
-거래량 :
-{indicator['Volume']:,}
+120일 이동평균
+{indicator["MA120"]}
 
-20일 평균거래량 :
-{indicator['Volume_AVG']:,}
+
+RSI
+{indicator["RSI"]}
+
+
+MACD
+{indicator["MACD"]}
+
+
+MACD Signal
+{indicator["MACD_SIGNAL"]}
+
+
+거래량
+{indicator["Volume"]:,}
+
+
+20일 평균 거래량
+{indicator["Volume_AVG"]:,}
+
+
+
+━━━━━━━━━━━━━━━━
+거시경제
+━━━━━━━━━━━━━━━━
+
+
+VIX
+{vix_price}
+
+
+달러지수(DXY)
+{dxy_price}
+
+
+미국 10년물 금리
+{rate}
+
+
+
+━━━━━━━━━━━━━━━━
+
+데이터 수집 및 분석 완료
 
 """
-)
+    )
+
+
 
 if __name__ == "__main__":
+
     main()
