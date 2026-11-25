@@ -10,7 +10,10 @@ from indicators import (
     get_indicator_summary
 )
 
-
+from scoring import (
+    calculate_score,
+    get_grade
+)
 def main():
 
     print("==========================")
@@ -39,6 +42,15 @@ def main():
     qqq = calculate_indicators(qqq)
 
     indicator = get_indicator_summary(qqq)
+
+    score, detail = calculate_score(
+    indicator,
+    vix_price,
+    rate,
+    dxy_price
+)
+
+grade = get_grade(score)
 
 
 
@@ -145,3 +157,23 @@ VIX
 if __name__ == "__main__":
 
     main()
+    
+print(
+f"""
+
+━━━━━━━━━━━━━━━━
+투자 평가
+━━━━━━━━━━━━━━━━
+
+종합 점수 :
+{score} / 100
+
+투자 등급 :
+{grade}
+
+
+"""
+)
+
+
+print("\n".join(detail))
