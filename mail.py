@@ -9,30 +9,37 @@ from email.mime.multipart import MIMEMultipart
 def send_email(html):
 
 
+    print()
+
+    print("메일 환경 확인")
+
+
     sender = os.getenv(
         "NAVER_EMAIL"
     )
+
 
     password = os.getenv(
         "NAVER_PASSWORD"
     )
 
+
     receiver = os.getenv(
-        "RECEIVE_EMAIL"
+        "NAVER_EMAIL"
     )
 
-
-    print("메일 환경 확인")
 
     print(
         "EMAIL:",
-        sender
+        "***"
     )
+
 
     print(
         "PASSWORD:",
         "입력됨" if password else "없음"
     )
+
 
     print(
         "RECEIVER:",
@@ -58,24 +65,19 @@ def send_email(html):
     if not receiver:
 
         raise Exception(
-            "RECEIVE_EMAIL 없음"
+            "수신 이메일 없음"
         )
 
 
 
-    msg = MIMEMultipart(
-        "alternative"
-    )
-
-
-    msg["Subject"] = (
-        "📈 QQQ AI 투자 리포트"
-    )
+    msg = MIMEMultipart()
 
 
     msg["From"] = sender
 
     msg["To"] = receiver
+
+    msg["Subject"] = "QQQ AI 투자 리포트"
 
 
 
@@ -89,35 +91,59 @@ def send_email(html):
 
 
 
-    server = smtplib.SMTP(
-        "smtp.naver.com",
-        587
-    )
+    try:
 
 
-    server.starttls()
+        server = smtplib.SMTP_SSL(
+
+            "smtp.naver.com",
+
+            465
+
+        )
+
+
+        server.login(
+
+            sender,
+
+            password
+
+        )
+
+
+        server.sendmail(
+
+            sender,
+
+            receiver,
+
+            msg.as_string()
+
+        )
+
+
+        server.quit()
 
 
 
-    server.login(
-        sender,
-        password
-    )
+        print()
+
+        print(
+            "메일 발송 성공"
+        )
 
 
 
-    server.sendmail(
-        sender,
-        receiver,
-        msg.as_string()
-    )
+    except Exception as e:
 
 
+        print()
 
-    server.quit()
+        print(
+            "메일 발송 실패:",
+            e
+        )
 
 
-
-    print(
-        "메일 발송 완료"
-    )
+        raise
