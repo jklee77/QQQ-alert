@@ -14,6 +14,8 @@ from scoring import (
     calculate_score,
     get_grade
 )
+
+
 def main():
 
     print("==========================")
@@ -21,9 +23,7 @@ def main():
     print("==========================")
 
 
-    # =====================
     # 데이터 수집
-    # =====================
 
     qqq = get_qqq()
 
@@ -35,38 +35,25 @@ def main():
 
 
 
-    # =====================
-    # 기술적 지표 계산
-    # =====================
+    # 기술 지표 계산
 
     qqq = calculate_indicators(qqq)
 
     indicator = get_indicator_summary(qqq)
 
-    score, detail = calculate_score(
-    indicator,
-    vix_price,
-    rate,
-    dxy_price
-)
-
-grade = get_grade(score)
 
 
-
-    # =====================
-    # 거시경제 데이터
-    # =====================
-
-    qqq_price = indicator["price"]
+    # 거시경제 값
 
     vix_price = float(
         vix["Close"].iloc[-1]
     )
 
+
     dxy_price = float(
         dxy["Close"].iloc[-1]
     )
+
 
     rate = float(
         us10y["Close"].iloc[-1]
@@ -74,106 +61,97 @@ grade = get_grade(score)
 
 
 
-    # =====================
-    # 출력
-    # =====================
+    # 투자 점수 계산
+
+    score, detail = calculate_score(
+        indicator,
+        vix_price,
+        rate,
+        dxy_price
+    )
+
+
+    grade = get_grade(score)
+
+
+
+    # 리포트 출력
 
     print(
 f"""
 
+━━━━━━━━━━━━━━━━━━
+
 QQQ 현재가
-${qqq_price}
+
+${indicator["price"]}
 
 
-━━━━━━━━━━━━━━━━
 기술적 분석
-━━━━━━━━━━━━━━━━
 
-
-5일 이동평균
+5일선 :
 {indicator["MA5"]}
 
-
-20일 이동평균
+20일선 :
 {indicator["MA20"]}
 
-
-60일 이동평균
+60일선 :
 {indicator["MA60"]}
 
-
-120일 이동평균
+120일선 :
 {indicator["MA120"]}
 
 
-RSI
+RSI :
 {indicator["RSI"]}
 
 
-MACD
+MACD :
 {indicator["MACD"]}
 
 
-MACD Signal
-{indicator["MACD_SIGNAL"]}
+━━━━━━━━━━━━━━━━━━
 
-
-거래량
-{indicator["Volume"]:,}
-
-
-20일 평균 거래량
-{indicator["Volume_AVG"]:,}
-
-
-
-━━━━━━━━━━━━━━━━
 거시경제
-━━━━━━━━━━━━━━━━
 
-
-VIX
+VIX :
 {vix_price}
 
+미국10년물 금리 :
+{rate}
 
-달러지수(DXY)
+달러지수 :
 {dxy_price}
 
 
-미국 10년물 금리
-{rate}
+
+━━━━━━━━━━━━━━━━━━
+
+투자 평가
 
 
+종합 점수 :
 
-━━━━━━━━━━━━━━━━
+{score} / 100
 
-데이터 수집 및 분석 완료
+
+투자 등급 :
+
+{grade}
+
+
+━━━━━━━━━━━━━━━━━━
 
 """
     )
+
+
+    for item in detail:
+
+        print(item)
 
 
 
 if __name__ == "__main__":
 
     main()
-    
-print(
-f"""
-
-━━━━━━━━━━━━━━━━
-투자 평가
-━━━━━━━━━━━━━━━━
-
-종합 점수 :
-{score} / 100
-
-투자 등급 :
-{grade}
-
-
-"""
-)
-
-
-print("\n".join(detail))
