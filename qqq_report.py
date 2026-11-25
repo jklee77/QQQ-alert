@@ -42,7 +42,8 @@ from chart import (
     create_qqq_chart
 )
 
-from signal import (
+# 중요: signal.py 충돌 방지
+from investment_signal import (
     get_investment_signal
 )
 
@@ -115,7 +116,7 @@ def main():
 
 
     # =========================
-    # 공포 탐욕 지수
+    # Fear & Greed
     # =========================
 
     fear_greed = get_fear_greed()
@@ -123,7 +124,7 @@ def main():
 
 
     # =========================
-    # 거시경제 점수
+    # 거시경제 분석
     # =========================
 
     macro_score, macro_detail = calculate_macro_score(
@@ -143,7 +144,7 @@ def main():
 
 
     # =========================
-    # 최종 투자 점수
+    # 투자 점수
     # =========================
 
     score, detail = calculate_final_score(
@@ -206,7 +207,7 @@ def main():
 
 
     # =========================
-    # QQQ 차트 생성
+    # 차트 생성
     # =========================
 
     chart_file = create_qqq_chart(
@@ -216,7 +217,7 @@ def main():
 
 
     # =========================
-    # AI 투자 의견
+    # AI 의견
     # =========================
 
     comment = create_comment(
@@ -250,15 +251,11 @@ def main():
     print("==============================")
 
 
-    print()
-
     print(
         "현재 가격:",
         indicator["price"]
     )
 
-
-    print()
 
     print(
         "투자 점수:",
@@ -267,15 +264,11 @@ def main():
     )
 
 
-    print()
-
     print(
         "투자 등급:",
         grade
     )
 
-
-    print()
 
     print(
         "투자 신호:",
@@ -283,24 +276,17 @@ def main():
     )
 
 
-
     print()
 
-    print(
-        "[AI 투자 의견]"
-    )
+    print("[AI 투자 의견]")
 
-    print(
-        comment
-    )
+    print(comment)
 
 
 
     print()
 
-    print(
-        "[상세 평가]"
-    )
+    print("[기술적 평가]")
 
     for item in detail:
 
@@ -310,10 +296,7 @@ def main():
 
     print()
 
-    print(
-        "[거시경제 평가]"
-    )
-
+    print("[거시경제 평가]")
 
     for item in macro_detail:
 
@@ -322,7 +305,7 @@ def main():
 
 
     # =========================
-    # HTML 리포트
+    # HTML 리포트 생성
     # =========================
 
     html = create_report(
@@ -344,7 +327,6 @@ def main():
     )
 
 
-
     html += f"""
 
 <hr>
@@ -353,17 +335,14 @@ def main():
 📊 전일 대비 투자점수 변화
 </h2>
 
-
 <p>
 현재 점수:
 <b>{score}/100</b>
 </p>
 
-
 <p>
 {change_report}
 </p>
-
 
 
 <hr>
@@ -380,22 +359,18 @@ def main():
 
 
 <p>
-<b>추천 행동:</b><br>
-
+<b>추천 행동</b><br>
 {investment_signal["action"]}
-
 </p>
 
 
 <p>
-<b>판단 근거:</b>
+<b>판단 근거</b>
 </p>
-
 
 <ul>
 
 """
-
 
 
     for reason in investment_signal["reason"]:
@@ -407,7 +382,6 @@ def main():
 </li>
 
 """
-
 
 
     html += """
@@ -426,7 +400,6 @@ def main():
 <img src="cid:qqq_chart">
 
 
-
 <hr>
 
 
@@ -436,13 +409,10 @@ def main():
 
 
 <p>
-
 """
 
 
-
     html += comment
-
 
 
     html += """
@@ -493,8 +463,6 @@ def main():
     print(
         "QQQ 리포트 완료"
     )
-
-
 
 
 
