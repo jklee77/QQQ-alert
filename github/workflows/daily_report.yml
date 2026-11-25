@@ -1,0 +1,121 @@
+name: QQQ AI Daily Report
+
+
+on:
+
+  workflow_dispatch:
+
+  schedule:
+
+    # 매주 월~금 한국시간 오전 7시 30분 실행
+    # UTC 기준 22:30
+    - cron: "30 22 * * 1-5"
+
+
+
+jobs:
+
+  qqq-report:
+
+
+    runs-on: ubuntu-latest
+
+
+
+    steps:
+
+
+      - name: Repository Checkout
+
+        uses: actions/checkout@v4
+
+
+
+      - name: Python 설치
+
+        uses: actions/setup-python@v5
+
+        with:
+
+          python-version: "3.11"
+
+
+
+      - name: 패키지 설치
+
+        run: |
+
+          python -m pip install --upgrade pip
+
+          pip install -r requirements.txt
+
+
+
+      - name: 환경변수 확인
+
+        env:
+
+          NAVER_EMAIL: ${{ secrets.NAVER_EMAIL }}
+
+          NAVER_PASSWORD: ${{ secrets.NAVER_PASSWORD }}
+
+          RECEIVE_EMAIL: ${{ secrets.RECEIVE_EMAIL }}
+
+
+        run: |
+
+          echo "=============================="
+
+          echo "GitHub Secret 확인"
+
+          echo "=============================="
+
+
+          if [ -z "$NAVER_EMAIL" ]; then
+
+            echo "NAVER_EMAIL 없음"
+
+          else
+
+            echo "NAVER_EMAIL 정상"
+
+          fi
+
+
+          if [ -z "$NAVER_PASSWORD" ]; then
+
+            echo "NAVER_PASSWORD 없음"
+
+          else
+
+            echo "NAVER_PASSWORD 정상"
+
+          fi
+
+
+          if [ -z "$RECEIVE_EMAIL" ]; then
+
+            echo "RECEIVE_EMAIL 없음"
+
+          else
+
+            echo "RECEIVE_EMAIL 정상"
+
+          fi
+
+
+
+      - name: QQQ AI 리포트 실행
+
+        env:
+
+          NAVER_EMAIL: ${{ secrets.NAVER_EMAIL }}
+
+          NAVER_PASSWORD: ${{ secrets.NAVER_PASSWORD }}
+
+          RECEIVE_EMAIL: ${{ secrets.RECEIVE_EMAIL }}
+
+
+        run: |
+
+          python qqq_report.py
