@@ -42,6 +42,7 @@ from mail import (
 from score_history import (
     get_previous_score,
     save_score,
+    save_ma20_history,
     score_change_report
 )
 
@@ -58,6 +59,11 @@ from investment_signal import (
 
 
 
+
+# =========================
+# 이메일 제목 결정
+# =========================
+
 def get_mail_subject(indicator):
 
 
@@ -65,7 +71,6 @@ def get_mail_subject(indicator):
         "MA20_CHANGE",
         ""
     )
-
 
 
     if (
@@ -139,7 +144,7 @@ def main():
 
 
     # =========================
-    # 기술 분석
+    # 기술적 분석
     # =========================
 
 
@@ -161,34 +166,50 @@ def main():
 
 
     vix = float(
-        vix_data["Close"].iloc[-1]
+
+        vix_data["Close"]
+        .iloc[-1]
+
     )
 
 
     rate = float(
-        rate_data["Close"].iloc[-1]
+
+        rate_data["Close"]
+        .iloc[-1]
+
     )
 
 
     rate_prev = float(
-        rate_data["Close"].iloc[-2]
+
+        rate_data["Close"]
+        .iloc[-2]
+
     )
 
 
     dxy = float(
-        dxy_data["Close"].iloc[-1]
+
+        dxy_data["Close"]
+        .iloc[-1]
+
     )
 
 
     dxy_prev = float(
-        dxy_data["Close"].iloc[-2]
+
+        dxy_data["Close"]
+        .iloc[-2]
+
     )
+
 
 
 
 
     # =========================
-    # Fear Greed
+    # Fear & Greed
     # =========================
 
 
@@ -197,8 +218,9 @@ def main():
 
 
 
+
     # =========================
-    # 거시경제
+    # 거시경제 점수
     # =========================
 
 
@@ -219,8 +241,9 @@ def main():
 
 
 
+
     # =========================
-    # 점수
+    # 투자 점수
     # =========================
 
 
@@ -235,34 +258,10 @@ def main():
     )
 
 
-
     grade = get_grade(
         score
     )
 
-
-
-
-    # =========================
-    # 점수 비교
-    # =========================
-
-
-    previous_score = get_previous_score()
-
-
-    change_report = score_change_report(
-
-        score,
-
-        previous_score
-
-    )
-
-
-    save_score(
-        score
-    )
 
 
 
@@ -289,14 +288,62 @@ def main():
 
 
 
+
     # =========================
-    # 차트
+    # 점수 비교
+    # =========================
+
+
+    previous_score = get_previous_score()
+
+
+
+    change_report = score_change_report(
+
+        score,
+
+        previous_score
+
+    )
+
+
+
+
+
+    # =========================
+    # 히스토리 저장
+    # =========================
+
+
+    save_score(
+        score
+    )
+
+
+    save_ma20_history(
+
+        indicator,
+
+        score,
+
+        investment_signal
+
+    )
+
+
+
+
+
+
+    # =========================
+    # 차트 생성
     # =========================
 
 
     chart_file = create_qqq_chart(
         qqq
     )
+
 
 
 
@@ -327,8 +374,10 @@ def main():
 
 
 
+
+
     # =========================
-    # HTML
+    # HTML 리포트
     # =========================
 
 
@@ -353,9 +402,16 @@ def main():
 
 
 
+
+    # =========================
+    # 추가 내용
+    # =========================
+
+
     html += f"""
 
 <hr>
+
 
 <h2>
 📌 MA20 투자 신호
@@ -368,15 +424,27 @@ def main():
 
 
 <p>
+
+<b>
+추천 행동
+</b>
+
+<br>
+
 {investment_signal["action"]}
+
 </p>
 
 
+
 <ul>
+
 """
 
 
+
     for reason in investment_signal["reason"]:
+
 
         html += f"""
 
@@ -387,40 +455,56 @@ def main():
 """
 
 
+
     html += """
 
 </ul>
 
+
 <hr>
+
 
 <h2>
 📊 투자 점수 변화
 </h2>
 
+
+<p>
+
 """
+
+
+    html += change_report
 
 
 
     html += f"""
 
-<p>
-{change_report}
 </p>
 
 
 <hr>
 
+
 <h2>
-🤖 AI 의견
+🤖 AI 투자 의견
 </h2>
 
 
 <p>
+
 {comment}
+
 </p>
 
 
+
 <hr>
+
+
+<h2>
+📈 QQQ 차트
+</h2>
 
 
 <img src="cid:qqq_chart">
@@ -430,8 +514,11 @@ def main():
 
 
 
+
+
+
     # =========================
-    # 이메일 제목 결정
+    # 이메일 제목
     # =========================
 
 
@@ -447,6 +534,53 @@ def main():
         "메일 제목:",
         subject
     )
+
+
+
+    print()
+
+    print("==============================")
+    print("QQQ AI 투자 리포트")
+    print("==============================")
+
+
+
+    print(
+        "현재 가격:",
+        indicator["price"]
+    )
+
+
+    print(
+        "투자 점수:",
+        score,
+        "/100"
+    )
+
+
+    print(
+        "등급:",
+        grade
+    )
+
+
+    print(
+        "MA20:",
+        indicator["MA20_TREND"]
+    )
+
+
+    print(
+        "MA20 변경:",
+        indicator["MA20_CHANGE"]
+    )
+
+
+    print(
+        "신호:",
+        investment_signal["signal"]
+    )
+
 
 
 
@@ -471,12 +605,19 @@ def main():
     print()
 
     print(
+        "메일 발송 완료"
+    )
+
+
+    print(
         "QQQ 리포트 완료"
     )
 
 
 
 
+
 if __name__ == "__main__":
+
 
     main()
