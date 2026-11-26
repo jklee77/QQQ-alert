@@ -7,7 +7,57 @@ from email.mime.image import MIMEImage
 
 
 
-def send_email(html, chart_file=None):
+# =========================
+# 이메일 제목 생성
+# =========================
+
+def create_subject(indicator=None):
+
+
+    if indicator is None:
+
+        return (
+            "📈 QQQ AI 투자 리포트"
+        )
+
+
+
+    ma20_change = indicator.get(
+        "MA20_CHANGE",
+        "변경 없음"
+    )
+
+
+
+    if ma20_change != "변경 없음":
+
+
+        return (
+            "🚨 QQQ 20MA 추세 전환 ALERT"
+        )
+
+
+
+    return (
+        "📈 QQQ AI 투자 리포트"
+    )
+
+
+
+
+# =========================
+# 이메일 발송
+# =========================
+
+def send_email(
+
+    html,
+
+    chart_file=None,
+
+    indicator=None
+
+):
 
 
     sender = os.getenv(
@@ -25,19 +75,25 @@ def send_email(html, chart_file=None):
     )
 
 
+
     print()
 
-    print("메일 환경 확인")
+    print(
+        "메일 환경 확인"
+    )
+
 
     print(
         "EMAIL:",
         "***"
     )
 
+
     print(
         "PASSWORD:",
         "입력됨" if password else "없음"
     )
+
 
     print(
         "RECEIVER:",
@@ -53,11 +109,18 @@ def send_email(html, chart_file=None):
         )
 
 
+
     if not password:
 
         raise Exception(
             "NAVER_PASSWORD 없음"
         )
+
+
+
+    # =========================
+    # 메일 생성
+    # =========================
 
 
     msg = MIMEMultipart(
@@ -69,8 +132,12 @@ def send_email(html, chart_file=None):
 
     msg["To"] = receiver
 
-    msg["Subject"] = (
-        "QQQ AI 투자 리포트"
+
+
+    # 제목 자동 결정
+
+    msg["Subject"] = create_subject(
+        indicator
     )
 
 
@@ -96,6 +163,7 @@ def send_email(html, chart_file=None):
     # 차트 이미지 첨부
     # =========================
 
+
     if chart_file:
 
 
@@ -116,6 +184,7 @@ def send_email(html, chart_file=None):
                 )
 
 
+
             img.add_header(
 
                 "Content-ID",
@@ -123,6 +192,7 @@ def send_email(html, chart_file=None):
                 "<qqq_chart>"
 
             )
+
 
 
             img.add_header(
@@ -136,6 +206,7 @@ def send_email(html, chart_file=None):
             )
 
 
+
             msg.attach(
                 img
             )
@@ -144,6 +215,7 @@ def send_email(html, chart_file=None):
             print(
                 "차트 첨부 완료"
             )
+
 
 
         except Exception as e:
@@ -157,7 +229,7 @@ def send_email(html, chart_file=None):
 
 
     # =========================
-    # 네이버 메일 발송
+    # 네이버 SMTP 발송
     # =========================
 
 
@@ -173,6 +245,7 @@ def send_email(html, chart_file=None):
         )
 
 
+
         server.login(
 
             sender,
@@ -180,6 +253,7 @@ def send_email(html, chart_file=None):
             password
 
         )
+
 
 
         server.sendmail(
@@ -191,6 +265,7 @@ def send_email(html, chart_file=None):
             msg.as_string()
 
         )
+
 
 
         server.quit()
