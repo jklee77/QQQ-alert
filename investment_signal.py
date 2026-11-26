@@ -21,6 +21,11 @@ def get_investment_signal(
 
 
 
+    # =========================
+    # 데이터
+    # =========================
+
+
     price = indicator.get(
         "price",
         0
@@ -28,133 +33,151 @@ def get_investment_signal(
 
 
     ma20 = indicator.get(
-        "ma20",
+        "MA20",
         0
     )
 
 
-    ma20_prev = indicator.get(
-        "ma20_prev",
+    ma20_trend = indicator.get(
+        "MA20_TREND",
+        ""
+    )
+
+
+    ma20_change = indicator.get(
+        "MA20_CHANGE",
+        ""
+    )
+
+
+    macd = indicator.get(
+        "MACD",
+        0
+    )
+
+
+    macd_signal = indicator.get(
+        "MACD_SIGNAL",
         0
     )
 
 
 
     # =========================
-    # 20일 이동평균 추세 판단
+    # MA20 추세 전환 분석
     # =========================
 
-    if ma20 > 0 and ma20_prev > 0:
+
+    if "하락추세 → 📈 상승추세" in ma20_change:
 
 
-        if ma20 > ma20_prev:
+        buy_score += 3
 
 
-            ma20_trend = "📈 상승추세"
-
-
-            buy_score += 1
-
-
-            reasons.append(
-                "20일 이동평균선 상승추세"
-            )
+        reasons.append(
+            "🚀 20일 이동평균 상승 추세 전환 발생"
+        )
 
 
 
-        elif ma20 < ma20_prev:
+    elif "상승추세 → 📉 하락추세" in ma20_change:
 
 
-            ma20_trend = "📉 하락추세"
+        sell_score += 3
 
 
-            sell_score += 1
-
-
-            reasons.append(
-                "20일 이동평균선 하락추세"
-            )
+        reasons.append(
+            "⚠️ 20일 이동평균 하락 추세 전환 발생"
+        )
 
 
 
-        else:
+    # =========================
+    # 현재 MA20 위치
+    # =========================
 
 
-            ma20_trend = "➡️ 횡보"
+    if price > ma20:
 
 
-            reasons.append(
-                "20일 이동평균선 횡보"
-            )
+        buy_score += 1
+
+
+        reasons.append(
+            "✅ 가격이 20일 이동평균 위"
+        )
 
 
     else:
 
 
-        ma20_trend = "데이터 부족"
+        sell_score += 1
+
+
+        reasons.append(
+            "❌ 가격이 20일 이동평균 아래"
+        )
 
 
 
     # =========================
-    # 매수 판단
+    # MA20 방향
     # =========================
 
 
-    if score >= 70:
+    if ma20_trend == "📈 상승추세":
 
 
         buy_score += 1
 
 
         reasons.append(
-            "투자점수 우수 (70점 이상)"
+            "📈 20일 이동평균 상승 방향"
         )
 
 
-
-    elif score < 30:
+    elif ma20_trend == "📉 하락추세":
 
 
         sell_score += 1
 
 
         reasons.append(
-            "투자점수 위험 구간"
+            "📉 20일 이동평균 하락 방향"
         )
 
 
 
     # =========================
-    # 가격 vs 20MA
+    # MACD
     # =========================
 
 
-    if ma20 > 0 and price > ma20:
+    if macd > macd_signal:
 
 
         buy_score += 1
 
 
         reasons.append(
-            "QQQ 가격이 20일 이동평균 위"
+            "📊 MACD 상승 신호"
         )
 
 
-
-    elif ma20 > 0 and price < ma20:
+    else:
 
 
         sell_score += 1
 
 
         reasons.append(
-            "QQQ 가격이 20일 이동평균 아래"
+            "📉 MACD 약세"
         )
 
 
 
     # =========================
-    # VIX 판단
+    # VIX
     # =========================
 
 
@@ -165,9 +188,8 @@ def get_investment_signal(
 
 
         reasons.append(
-            "VIX 안정 구간"
+            "😌 VIX 안정 구간"
         )
-
 
 
     elif vix > 30:
@@ -177,88 +199,74 @@ def get_investment_signal(
 
 
         reasons.append(
-            "VIX 위험 수준"
-        )
-
-
-    else:
-
-
-        reasons.append(
-            "VIX 중립 구간"
+            "🚨 VIX 위험 구간"
         )
 
 
 
     # =========================
-    # 공포탐욕지수 판단
+    # 투자점수 보조
     # =========================
 
 
-    if fear_greed < 30:
+    if score >= 70:
 
 
         buy_score += 1
 
 
         reasons.append(
-            "공포 구간 분할매수 기회"
+            "⭐ 종합 투자점수 우수"
         )
 
 
-    elif fear_greed > 80:
+    elif score < 50:
 
 
         sell_score += 1
 
 
         reasons.append(
-            "탐욕 과열 구간"
+            "⚠️ 종합 투자점수 약세"
         )
 
 
 
     # =========================
-    # 금리 판단
+    # 최종 판단
     # =========================
 
 
-    if rate:
+    if buy_score >= 4:
 
 
-        reasons.append(
-            f"금리 지표 확인: {rate}"
+        signal = (
+            "🟢 MA20 상승 추세 매수 검토"
         )
-
-
-
-    # =========================
-    # 최종 투자 신호
-    # =========================
-
-
-    if buy_score >= 3:
-
-
-        signal = "🟢 매수 검토"
 
 
         action = (
-            "중기 상승추세 확인, "
-            "분할 매수 접근 검토"
+
+            "분할 매수 접근\n"
+            "상승 추세 유지 여부 확인"
+
         )
 
 
 
-    elif sell_score >= 2:
+    elif sell_score >= 3:
 
 
-        signal = "🔴 위험 관리"
+        signal = (
+            "🔴 MA20 추세 위험 관리"
+        )
 
 
         action = (
-            "20일선 추세 약화, "
-            "비중 축소 및 현금 관리"
+
+            "비중 축소 검토\n"
+            "MA20 회복 여부 확인"
+
         )
 
 
@@ -266,11 +274,16 @@ def get_investment_signal(
     else:
 
 
-        signal = "🟡 보유"
+        signal = (
+            "🟡 MA20 추세 관찰"
+        )
 
 
         action = (
-            "추세 확인 후 대응"
+
+            "보유 유지\n"
+            "추가 방향 확인"
+
         )
 
 
@@ -288,18 +301,6 @@ def get_investment_signal(
 
         "reason":
         reasons,
-
-
-        "ma20_trend":
-        ma20_trend,
-
-
-        "ma20":
-        ma20,
-
-
-        "ma20_prev":
-        ma20_prev,
 
 
         "buy_score":
