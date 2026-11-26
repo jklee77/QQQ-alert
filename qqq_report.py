@@ -42,7 +42,6 @@ from chart import (
     create_qqq_chart
 )
 
-# 중요: signal.py 충돌 방지
 from investment_signal import (
     get_investment_signal
 )
@@ -258,6 +257,18 @@ def main():
 
 
     print(
+        "20MA 추세:",
+        indicator["MA20_TREND"]
+    )
+
+
+    print(
+        "20MA 변화:",
+        indicator["MA20_CHANGE"]
+    )
+
+
+    print(
         "투자 점수:",
         score,
         "/100"
@@ -274,6 +285,7 @@ def main():
         "투자 신호:",
         investment_signal["signal"]
     )
+
 
 
     print()
@@ -327,6 +339,7 @@ def main():
     )
 
 
+
     html += f"""
 
 <hr>
@@ -335,14 +348,17 @@ def main():
 📊 전일 대비 투자점수 변화
 </h2>
 
+
 <p>
 현재 점수:
 <b>{score}/100</b>
 </p>
 
+
 <p>
 {change_report}
 </p>
+
 
 
 <hr>
@@ -353,27 +369,39 @@ def main():
 </h2>
 
 
+
 <h3>
 {investment_signal["signal"]}
 </h3>
 
 
+
 <p>
+
 <b>추천 행동</b><br>
+
 {investment_signal["action"]}
+
 </p>
+
 
 
 <p>
+
 <b>판단 근거</b>
+
 </p>
+
+
 
 <ul>
 
 """
 
 
+
     for reason in investment_signal["reason"]:
+
 
         html += f"""
 
@@ -382,6 +410,7 @@ def main():
 </li>
 
 """
+
 
 
     html += """
@@ -400,6 +429,7 @@ def main():
 <img src="cid:qqq_chart">
 
 
+
 <hr>
 
 
@@ -408,11 +438,15 @@ def main():
 </h2>
 
 
+
 <p>
+
 """
 
 
+
     html += comment
+
 
 
     html += """
@@ -429,11 +463,14 @@ def main():
 
     try:
 
+
         send_email(
 
             html,
 
-            chart_file
+            chart_file,
+
+            indicator
 
         )
 
@@ -445,7 +482,9 @@ def main():
         )
 
 
+
     except Exception as e:
+
 
         print()
 
@@ -453,6 +492,7 @@ def main():
             "메일 발송 실패:",
             e
         )
+
 
         raise
 
