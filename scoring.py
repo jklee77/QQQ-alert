@@ -9,10 +9,15 @@ def calculate_final_score(
 ):
 
 
-    score = 50
+    score = 0
 
     detail = []
 
+
+
+    # =====================
+    # 데이터
+    # =====================
 
 
     price = indicator.get(
@@ -39,37 +44,62 @@ def calculate_final_score(
     )
 
 
+    ma20_slope = indicator.get(
+        "MA20_SLOPE",
+        0
+    )
+
+
+    ma20_duration = indicator.get(
+        "MA20_DURATION",
+        0
+    )
+
+
 
     # =====================
-    # 1. MA20 추세 분석
+    # 1. MA20 추세 (20점)
     # =====================
 
 
     if ma20_trend == "📈 상승추세":
 
 
-        score += 15
+        score += 20
 
 
         detail.append(
-            "📈 MA20 상승 추세 +15"
+            "📈 MA20 상승 추세 +20"
         )
-
 
 
     elif ma20_trend == "📉 하락추세":
 
 
-        score -= 10
+        score += 0
 
 
         detail.append(
-            "📉 MA20 하락 추세 -10"
+            "📉 MA20 하락 추세 +0"
+        )
+
+
+    else:
+
+
+        score += 10
+
+
+        detail.append(
+            "➡️ MA20 횡보 +10"
         )
 
 
 
-    # 추세 전환
+    # =====================
+    # 2. MA20 추세 전환 (20점)
+    # =====================
+
 
     if (
         "하락추세 → 📈 상승추세"
@@ -81,7 +111,7 @@ def calculate_final_score(
 
 
         detail.append(
-            "🚀 MA20 상승 전환 +20"
+            "🚀 MA20 상승 전환 발생 +20"
         )
 
 
@@ -92,46 +122,155 @@ def calculate_final_score(
     ):
 
 
-        score -= 20
+        score -= 10
 
 
         detail.append(
-            "🚨 MA20 하락 전환 -20"
+            "🚨 MA20 하락 전환 -10"
         )
 
 
 
-    # 가격 위치
+    else:
+
+
+        detail.append(
+            "➡️ MA20 추세 유지"
+        )
+
+
+
+    # =====================
+    # 3. MA20 Slope (10점)
+    # =====================
+
+
+    if ma20_slope >= 1:
+
+
+        score += 10
+
+
+        detail.append(
+            "📈 MA20 강한 상승 기울기 +10"
+        )
+
+
+
+    elif ma20_slope > 0:
+
+
+        score += 5
+
+
+        detail.append(
+            "📈 MA20 완만한 상승 +5"
+        )
+
+
+
+    elif ma20_slope < -1:
+
+
+        score -= 5
+
+
+        detail.append(
+            "📉 MA20 강한 하락 -5"
+        )
+
+
+
+    else:
+
+
+        detail.append(
+            "➡️ MA20 기울기 약함"
+        )
+
+
+
+    # =====================
+    # 4. MA20 유지 기간 (10점)
+    # =====================
+
+
+    if ma20_duration >= 20:
+
+
+        score += 10
+
+
+        detail.append(
+            "🔥 MA20 추세 20일 이상 유지 +10"
+        )
+
+
+    elif ma20_duration >= 10:
+
+
+        score += 7
+
+
+        detail.append(
+            "📈 MA20 추세 10일 이상 유지 +7"
+        )
+
+
+    elif ma20_duration >= 5:
+
+
+        score += 3
+
+
+        detail.append(
+            "📊 MA20 추세 초기 유지 +3"
+        )
+
+
+
+    # =====================
+    # 5. 가격 위치 (10점)
+    # =====================
+
 
     if price > ma20:
 
 
-        score += 15
+        score += 10
 
 
         detail.append(
-            "✅ 가격 MA20 위 +15"
+            "✅ 가격 20MA 위 +10"
         )
 
 
     else:
 
 
-        score -= 10
+        score -= 5
 
 
         detail.append(
-            "❌ 가격 MA20 아래 -10"
+            "❌ 가격 20MA 아래 -5"
         )
 
 
 
     # =====================
-    # 2. 기술 보조지표
+    # 6. MACD (10점)
     # =====================
 
 
-    if indicator["MACD"] > indicator["MACD_SIGNAL"]:
+    if (
+
+        indicator["MACD"]
+
+        >
+
+        indicator["MACD_SIGNAL"]
+
+    ):
 
 
         score += 10
@@ -145,16 +284,21 @@ def calculate_final_score(
     else:
 
 
-        score -= 5
-
-
         detail.append(
-            "📉 MACD 약세 -5"
+            "📉 MACD 약세 +0"
         )
 
 
 
-    if 40 <= indicator["RSI"] <= 70:
+    # =====================
+    # 7. RSI (5점)
+    # =====================
+
+
+    rsi = indicator["RSI"]
+
+
+    if 40 <= rsi <= 70:
 
 
         score += 5
@@ -165,7 +309,7 @@ def calculate_final_score(
         )
 
 
-    elif indicator["RSI"] > 75:
+    elif rsi > 75:
 
 
         score -= 5
@@ -177,10 +321,19 @@ def calculate_final_score(
 
 
 
+    # =====================
+    # 8. 거래량 (5점)
+    # =====================
+
+
     if (
+
         indicator["Volume"]
+
         >=
+
         indicator["Volume_AVG"]
+
     ):
 
 
@@ -194,16 +347,22 @@ def calculate_final_score(
 
 
     # =====================
-    # 3. 거시경제
+    # 9. 거시경제 (10점)
     # =====================
 
 
     macro = min(
+
         max(
+
             macro_score,
+
             0
+
         ),
-        20
+
+        10
+
     )
 
 
@@ -217,7 +376,7 @@ def calculate_final_score(
 
 
     # =====================
-    # 4. 시장 심리
+    # 10. 시장심리 (10점)
     # =====================
 
 
@@ -256,13 +415,14 @@ def calculate_final_score(
 
 
     # =====================
-    # 점수 제한
+    # 점수 보정
     # =====================
 
 
     if score > 100:
 
         score = 100
+
 
 
     if score < 0:
@@ -277,6 +437,10 @@ def calculate_final_score(
 
 
 
+# =====================
+# 등급
+# =====================
+
 def get_grade(score):
 
 
@@ -285,9 +449,11 @@ def get_grade(score):
         return "⭐ 강력 매수"
 
 
+
     elif score >= 80:
 
         return "🟢 적극 매수"
+
 
 
     elif score >= 70:
@@ -295,14 +461,17 @@ def get_grade(score):
         return "🟢 매수"
 
 
+
     elif score >= 60:
 
         return "🟡 분할매수"
 
 
+
     elif score >= 50:
 
         return "🟠 관망"
+
 
 
     else:
