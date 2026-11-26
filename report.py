@@ -32,6 +32,25 @@ def create_report(
     )
 
 
+    ma20_change = indicator.get(
+        "MA20_CHANGE",
+        "변경 없음"
+    )
+
+
+    if ma20_change != "변경 없음":
+
+        ma20_alert = (
+            "🚨 20일 이동평균 추세 전환 발생"
+        )
+
+    else:
+
+        ma20_alert = (
+            "현재 추세 유지"
+        )
+
+
 
     html = f"""
 
@@ -122,6 +141,32 @@ cellpadding="5">
 <td>
 {indicator["MA20_TREND"]}
 </td>
+</tr>
+
+
+
+<tr>
+<td>
+20일 이동평균 추세 변화
+</td>
+
+<td>
+{ma20_change}
+</td>
+
+</tr>
+
+
+
+<tr>
+<td>
+추세 상태
+</td>
+
+<td>
+{ma20_alert}
+</td>
+
 </tr>
 
 
@@ -247,8 +292,16 @@ VIX :
 20일 이동평균선 기준:
 <br>
 
-
 {indicator["MA20_TREND"]}
+
+
+<br><br>
+
+
+추세 변화:
+<br>
+
+{ma20_change}
 
 
 <br><br>
@@ -256,7 +309,6 @@ VIX :
 
 현재 가격 위치:
 <br>
-
 
 {indicator["PRICE_VS_MA20"]}
 
