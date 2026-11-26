@@ -1,7 +1,6 @@
 import pandas as pd
 
 
-
 # =========================
 # 이동평균 계산
 # =========================
@@ -14,7 +13,6 @@ def add_moving_average(df):
         .mean()
     )
 
-
     df["MA20"] = (
         df["Close"]
         .rolling(window=20)
@@ -23,6 +21,7 @@ def add_moving_average(df):
 
 
     # 5거래일 전 20일 이동평균
+
     df["MA20_PREV"] = (
         df["MA20"]
         .shift(5)
@@ -47,7 +46,6 @@ def add_moving_average(df):
 
 
 
-
 # =========================
 # 20일 이동평균 추세 분석
 # =========================
@@ -57,9 +55,14 @@ def add_ma20_trend(df):
 
     def check_trend(row):
 
-        if pd.isna(row["MA20"]) or pd.isna(row["MA20_PREV"]):
+        if (
+            pd.isna(row["MA20"])
+            or
+            pd.isna(row["MA20_PREV"])
+        ):
 
             return "데이터 부족"
+
 
 
         if row["MA20"] > row["MA20_PREV"]:
@@ -67,9 +70,11 @@ def add_ma20_trend(df):
             return "📈 상승추세"
 
 
+
         elif row["MA20"] < row["MA20_PREV"]:
 
             return "📉 하락추세"
+
 
 
         else:
@@ -90,9 +95,58 @@ def add_ma20_trend(df):
 
 
 
+# =========================
+# 20MA 추세 변화 감지
+# =========================
+
+def add_ma20_change(df):
+
+
+    df["MA20_TREND_PREV"] = (
+        df["MA20_TREND"]
+        .shift(1)
+    )
+
+
+
+    def check_change(row):
+
+        if (
+            pd.isna(row["MA20_TREND_PREV"])
+            or
+            row["MA20_TREND_PREV"]
+            ==
+            row["MA20_TREND"]
+        ):
+
+            return "변경 없음"
+
+
+
+        return (
+            row["MA20_TREND_PREV"]
+            +
+            " → "
+            +
+            row["MA20_TREND"]
+        )
+
+
+
+    df["MA20_CHANGE"] = (
+        df.apply(
+            check_change,
+            axis=1
+        )
+    )
+
+
+    return df
+
+
 
 # =========================
-# 가격과 20MA 위치 분석
+# 가격과 20MA 위치
 # =========================
 
 def add_price_position(df):
@@ -128,7 +182,6 @@ def add_price_position(df):
 
 
 
-
 # =========================
 # 거래량 분석
 # =========================
@@ -141,8 +194,8 @@ def add_volume_indicator(df):
         .mean()
     )
 
-    return df
 
+    return df
 
 
 
@@ -152,12 +205,19 @@ def add_volume_indicator(df):
 
 def add_rsi(df, period=14):
 
+
     delta = df["Close"].diff()
 
-    gain = delta.clip(lower=0)
+
+    gain = delta.clip(
+        lower=0
+    )
+
 
     loss = (
-        -delta.clip(upper=0)
+        -delta.clip(
+            upper=0
+        )
     )
 
 
@@ -188,12 +248,12 @@ def add_rsi(df, period=14):
 
 
 
-
 # =========================
 # MACD 계산
 # =========================
 
 def add_macd(df):
+
 
     ema12 = (
         df["Close"]
@@ -234,7 +294,6 @@ def add_macd(df):
 
 
 
-
 # =========================
 # 전체 지표 적용
 # =========================
@@ -246,6 +305,8 @@ def calculate_indicators(df):
 
     df = add_ma20_trend(df)
 
+    df = add_ma20_change(df)
+
     df = add_price_position(df)
 
     df = add_volume_indicator(df)
@@ -256,7 +317,6 @@ def calculate_indicators(df):
 
 
     return df
-
 
 
 
@@ -291,6 +351,10 @@ def get_indicator_summary(df):
 
         "MA20_TREND":
             today["MA20_TREND"],
+
+
+        "MA20_CHANGE":
+            today["MA20_CHANGE"],
 
 
         "PRICE_VS_MA20":
