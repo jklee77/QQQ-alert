@@ -1,53 +1,16 @@
 import os
+
 import smtplib
 
+
 from email.mime.text import MIMEText
+
 from email.mime.multipart import MIMEMultipart
+
 from email.mime.image import MIMEImage
 
 
 
-# =========================
-# 이메일 제목 생성
-# =========================
-
-def create_subject(indicator=None):
-
-
-    if indicator is None:
-
-        return (
-            "📈 QQQ AI 투자 리포트"
-        )
-
-
-
-    ma20_change = indicator.get(
-        "MA20_CHANGE",
-        "변경 없음"
-    )
-
-
-
-    if ma20_change != "변경 없음":
-
-
-        return (
-            "🚨 QQQ 20MA 추세 전환 ALERT"
-        )
-
-
-
-    return (
-        "📈 QQQ AI 투자 리포트"
-    )
-
-
-
-
-# =========================
-# 이메일 발송
-# =========================
 
 def send_email(
 
@@ -55,9 +18,10 @@ def send_email(
 
     chart_file=None,
 
-    indicator=None
+    subject="📈 QQQ AI 투자 리포트"
 
 ):
+
 
 
     sender = os.getenv(
@@ -91,7 +55,10 @@ def send_email(
 
     print(
         "PASSWORD:",
-        "입력됨" if password else "없음"
+        "입력됨"
+        if password
+        else
+        "없음"
     )
 
 
@@ -102,7 +69,9 @@ def send_email(
 
 
 
+
     if not sender:
+
 
         raise Exception(
             "NAVER_EMAIL 없음"
@@ -112,9 +81,12 @@ def send_email(
 
     if not password:
 
+
         raise Exception(
             "NAVER_PASSWORD 없음"
         )
+
+
 
 
 
@@ -128,18 +100,22 @@ def send_email(
     )
 
 
+
     msg["From"] = sender
+
 
     msg["To"] = receiver
 
 
+    msg["Subject"] = subject
 
-    # 제목 자동 결정
 
-    msg["Subject"] = create_subject(
-        indicator
-    )
 
+
+
+    # =========================
+    # HTML 본문
+    # =========================
 
 
     body = MIMEText(
@@ -159,6 +135,8 @@ def send_email(
 
 
 
+
+
     # =========================
     # 차트 이미지 첨부
     # =========================
@@ -167,7 +145,9 @@ def send_email(
     if chart_file:
 
 
+
         try:
+
 
 
             with open(
@@ -179,9 +159,13 @@ def send_email(
             ) as f:
 
 
+
                 img = MIMEImage(
+
                     f.read()
+
                 )
+
 
 
 
@@ -212,6 +196,7 @@ def send_email(
             )
 
 
+
             print(
                 "차트 첨부 완료"
             )
@@ -221,10 +206,17 @@ def send_email(
         except Exception as e:
 
 
+
             print(
+
                 "차트 첨부 실패:",
+
                 e
+
             )
+
+
+
 
 
 
@@ -234,6 +226,7 @@ def send_email(
 
 
     try:
+
 
 
         server = smtplib.SMTP_SSL(
@@ -272,6 +265,7 @@ def send_email(
 
 
 
+
         print()
 
         print(
@@ -280,7 +274,9 @@ def send_email(
 
 
 
+
     except Exception as e:
+
 
 
         print()
