@@ -32,25 +32,6 @@ def create_report(
     )
 
 
-    ma20_change = indicator.get(
-        "MA20_CHANGE",
-        "변경 없음"
-    )
-
-
-    if ma20_change != "변경 없음":
-
-        ma20_alert = (
-            "🚨 20일 이동평균 추세 전환 발생"
-        )
-
-    else:
-
-        ma20_alert = (
-            "현재 추세 유지"
-        )
-
-
 
     html = f"""
 
@@ -97,6 +78,7 @@ def create_report(
 
 
 
+
 <h3>
 📊 QQQ 기술 분석
 </h3>
@@ -104,40 +86,64 @@ def create_report(
 
 
 <table border="1"
-cellpadding="5">
+cellpadding="5"
+cellspacing="0">
 
 
 
 <tr>
-<td>현재가격</td>
-<td>${indicator["price"]}</td>
+<td>
+현재가격
+</td>
+
+<td>
+${indicator["price"]}
+</td>
 </tr>
 
 
 
 <tr>
-<td>5일 이동평균</td>
-<td>{indicator["MA5"]}</td>
+<td>
+5일 이동평균
+</td>
+
+<td>
+{indicator["MA5"]}
+</td>
 </tr>
 
 
 
 <tr>
-<td>20일 이동평균</td>
-<td>{indicator["MA20"]}</td>
+<td>
+20일 이동평균
+</td>
+
+<td>
+{indicator["MA20"]}
+</td>
 </tr>
 
 
 
 <tr>
-<td>5일 전 20일 이동평균</td>
-<td>{indicator["MA20_PREV"]}</td>
+<td>
+5일 전 20일 이동평균
+</td>
+
+<td>
+{indicator["MA20_PREV"]}
+</td>
 </tr>
 
 
 
 <tr>
-<td>20일 이동평균 추세</td>
+<td>
+20MA 추세
+</td>
+
 <td>
 {indicator["MA20_TREND"]}
 </td>
@@ -147,32 +153,45 @@ cellpadding="5">
 
 <tr>
 <td>
-20일 이동평균 추세 변화
+20MA 추세 변경
 </td>
 
 <td>
-{ma20_change}
+{indicator["MA20_CHANGE"]}
 </td>
-
 </tr>
 
 
 
 <tr>
 <td>
-추세 상태
+20MA 기울기
 </td>
 
 <td>
-{ma20_alert}
+{indicator["MA20_SLOPE"]} %
 </td>
-
 </tr>
 
 
 
 <tr>
-<td>가격 위치</td>
+<td>
+20MA 추세 유지 기간
+</td>
+
+<td>
+{indicator["MA20_DURATION"]} 일
+</td>
+</tr>
+
+
+
+<tr>
+<td>
+현재 가격 위치
+</td>
+
 <td>
 {indicator["PRICE_VS_MA20"]}
 </td>
@@ -181,36 +200,61 @@ cellpadding="5">
 
 
 <tr>
-<td>60일 이동평균</td>
-<td>{indicator["MA60"]}</td>
+<td>
+60일 이동평균
+</td>
+
+<td>
+{indicator["MA60"]}
+</td>
 </tr>
 
 
 
 <tr>
-<td>120일 이동평균</td>
-<td>{indicator["MA120"]}</td>
+<td>
+120일 이동평균
+</td>
+
+<td>
+{indicator["MA120"]}
+</td>
 </tr>
 
 
 
 <tr>
-<td>RSI</td>
-<td>{indicator["RSI"]}</td>
+<td>
+RSI
+</td>
+
+<td>
+{indicator["RSI"]}
+</td>
 </tr>
 
 
 
 <tr>
-<td>MACD</td>
-<td>{indicator["MACD"]}</td>
+<td>
+MACD
+</td>
+
+<td>
+{indicator["MACD"]}
+</td>
 </tr>
 
 
 
 <tr>
-<td>MACD Signal</td>
-<td>{indicator["MACD_SIGNAL"]}</td>
+<td>
+MACD Signal
+</td>
+
+<td>
+{indicator["MACD_SIGNAL"]}
+</td>
 </tr>
 
 
@@ -220,7 +264,64 @@ cellpadding="5">
 
 
 
+
 <hr>
+
+
+
+
+<h3>
+📈 MA20 추세 분석
+</h3>
+
+
+
+<p>
+
+
+현재 추세:
+
+<b>
+{indicator["MA20_TREND"]}
+</b>
+
+
+<br><br>
+
+
+추세 변경:
+
+<b>
+{indicator["MA20_CHANGE"]}
+</b>
+
+
+<br><br>
+
+
+20일 이동평균 변화율:
+
+<b>
+{indicator["MA20_SLOPE"]} %
+</b>
+
+
+<br><br>
+
+
+추세 유지 기간:
+
+<b>
+{indicator["MA20_DURATION"]}일
+</b>
+
+
+</p>
+
+
+
+<hr>
+
 
 
 
@@ -286,34 +387,59 @@ VIX :
 </h3>
 
 
+
 <p>
 
 
-20일 이동평균선 기준:
-<br>
-
-{indicator["MA20_TREND"]}
+본 리포트는 MA20 추세 기반 전략을 적용합니다.
 
 
 <br><br>
 
 
-추세 변화:
+<b>
+매수 판단 기준
+</b>
+
 <br>
 
-{ma20_change}
+- MA20 상승 추세 전환
+
+<br>
+
+- 가격이 MA20 위 위치
+
+<br>
+
+- MA20 기울기 상승
+
+<br>
+
+- 상승 추세 유지 확인
 
 
 <br><br>
 
 
-현재 가격 위치:
+<b>
+위험 관리 기준
+</b>
+
 <br>
 
-{indicator["PRICE_VS_MA20"]}
+- MA20 하락 전환
+
+<br>
+
+- 가격 MA20 하회
+
+<br>
+
+- MA20 기울기 하락
 
 
 </p>
+
 
 
 
@@ -337,6 +463,7 @@ VIX :
 </html>
 
 """
+
 
 
     return html
